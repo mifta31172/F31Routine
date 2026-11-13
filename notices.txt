@@ -1,0 +1,14 @@
+# NOTICES + SETTINGS (edit this file on GitHub, then Commit; everyone sees it)
+# sgt = first day of the SGT cycle (YYYY-MM-DD). sun = dit  or  lec  (Sunday afternoon)
+# Each notice is separated by a line with ---   First line = title (start it with * to pin).
+sgt: 
+sun: dit
+---
+Lecture schedule update
+date: 13 Nov 26
+Tomorrow Lecture schedule
+
+📌11:00-2:30AM
+Integrated teaching
+Topic : AUB
+FP: Jasmine Mam

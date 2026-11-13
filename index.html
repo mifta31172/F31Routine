@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>F-31 Routine · FMC</title>
+<style>
+:root{--bg:#f4f6f8;--cd:#fff;--tx:#10151c;--mu:#5f6b7a;--ac:#0b7a5a;--as:#e3f4ed;--bd:#e2e6ea;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1217;--cd:#171d25;--tx:#eef2f6;--mu:#9aa7b6;--ac:#3ecf9e;--as:#12332a;--bd:#262f3a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1217;--cd:#171d25;--tx:#eef2f6;--mu:#9aa7b6;--ac:#3ecf9e;--as:#12332a;--bd:#262f3a;color-scheme:dark}
+*{box-sizing:inherit}
+html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:18px 16px 4px}h1{margin:0;font-size:22px}header small{color:var(--mu)}
+main{padding:8px 16px 96px;max-width:640px;margin:0 auto}
+.chips{display:flex;gap:8px;padding:8px 16px;overflow-x:auto}
+.chip{flex:none;min-width:44px;padding:8px 14px;border-radius:20px;border:1px solid var(--bd);background:var(--cd);color:var(--tx);font-weight:600;font-size:15px;font-family:inherit}
+.chip small{display:block;font-weight:400;color:var(--mu);font-size:11px}
+.chip.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.sec{margin:18px 2px 6px;color:var(--mu);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:8px 0;display:flex;flex-direction:column;gap:4px}
+.card span,.card small,.row span{color:var(--mu)}
+.card small{font-size:13px}.card p{margin:4px 0 0;white-space:pre-wrap}
+.hero{background:var(--as);border-color:var(--ac)}.hero b{font-size:19px}
+.pin{border-left:4px solid var(--ac)}
+.bar{height:6px;background:var(--bd);border-radius:3px;overflow:hidden;margin:6px 0}.bar i{display:block;height:100%;background:var(--ac)}
+a{color:var(--ac);font-weight:600}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--bd);background:var(--cd)}
+.row.on{background:var(--as);border-left:4px solid var(--ac)}.row.past{opacity:.5}
+.row div{display:flex;flex-direction:column}
+input,textarea,select,button.act,button.del{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);width:100%}
+button.act{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+button.del{width:auto;align-self:flex-start;color:#d92d20;background:none}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--cd);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;padding:14px 0;background:none;border:0;color:var(--mu);font-weight:600;font-size:14px;font-family:inherit;position:relative}
+nav button.on{color:var(--ac)}
+footer{margin:28px 0 0;text-align:center;color:var(--mu);font-size:12px}
+.dot{position:absolute;top:10px;margin-left:4px;width:8px;height:8px;border-radius:50%;background:#e5484d}
+</style><style>artifact-sync,artifact-local{display:contents}</style></head>
+<body>
+<div id="app"></div>
+<script id="st" type="application/json">{"notices":[{"i":1794579225760,"t":"Lecture schedule update","b":"Tomorrow Lecture schedule  \n\n📌11:00-2:30AM\n Integrated teaching \nTopic : AUB\nFP: Jasmine Mam","p":false,"d":"13 Nov 26"}]}</script>
+<script>
+const $=s=>document.querySelector(s),G='ABCDEF',DAY=864e5;
+const ls=(k,v)=>{try{return v===undefined?localStorage.getItem(k):localStorage.setItem(k,v)}catch(e){return null}};
+const D=s=>new Date(2000+ +s.slice(0,2),+s.slice(2,4)-1,+s.slice(4,6));
+const WP=[["261101","261105"],["261107","261111"],["261112","261117"],["261118","261123"],["261124","261129"]];
+const WARD={A:"Pediatrics,Gastroenterology,Cardiology,Medicine unit-01,Medicine unit-02",B:"Medicine unit-03,Pediatrics,Gastroenterology,Cardiology,Medicine unit-04",C:"Medicine unit-05,Medicine unit-01,Pediatrics,Gastroenterology,Cardiology",D:"Cardiology,Medicine unit-02,Medicine unit-03,Pediatrics,Gastroenterology",E:"Gastroenterology,Medicine unit-04,Medicine unit-05,Medicine unit-02,Pediatrics",F:"Pediatrics,Cardiology,Medicine unit-01,Medicine unit-03,Medicine unit-05"};
+const BLK=`Internal Medicine|261201-261214|270210-270223|270127-270209|270113-270126|261230-270112|261215-261229
+Paediatrics|270127-270202|270113-270119|261230-270105|261215-261222|261201-261207|270210-270216
+Psychiatry|270203-270206|270120-270123|270106-270109|261223-261226|261208-261210|270217-270220
+Dermatology|270207-270209|270124-270126|270110-270112|261227-261229|261212-261214|270221-270223
+Surgery|270113-270121|261230-270107|261215-261224|261201-261209|270210-270218|270127-270204
+Orthopedics|270123-270126|270109-270112|261226-261229|261210-261214|270220-270223|270206-270209
+Urology|270222|270208|270125|270111|261228|261213
+Burn|270223|270209|270126|270112|261229|261214
+Ophthalmology|270210-270215|270127-270201|270113-270118|261230-270104|261215-261221|261201-261206
+ENT|270216-270221|270202-270207|270119-270124|270105-270110|261222-261227|261207-261212
+Gynecology|261215-261229|261201-261214|270210-270223|270127-270209|270113-270126|261230-270112
+Obstetrics|261230-270112|261215-261229|261201-261214|270210-270223|270127-270209|270113-270126`;
+let g=ls('g'),tab='today',st={notices:[]},owner=false;
+g=/^[A-F]$/.test(g)?g:'';
+try{st=JSON.parse($('#st').textContent)}catch(e){}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fd=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
+const rng=e=>+e.s==+e.e?fd(e.s):fd(e.s)+' – '+fd(e.e);
+const today=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate())};
+const cal=e=>{const f=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('F-31: '+e.t)+'&dates='+f(e.s)+'/'+f(new Date(+e.e+DAY))+'&details='+encodeURIComponent('FMC F-31 routine · Group '+g)};
+function evs(x){const i=G.indexOf(x),o=[];
+ WARD[x].split(',').forEach((t,k)=>o.push({t:'Medicine ward · '+t,s:D(WP[k][0]),e:D(WP[k][1]),k:'w'}));
+ o.push({t:'Medicine ward · Feedback class',s:D('261130'),e:D('261130'),k:'w'});
+ BLK.split('\n').forEach(r=>{const c=r.split('|'),p=c[i+1].split('-');o.push({t:c[0],s:D(p[0]),e:D(p[1]||p[0]),k:'b'})});
+ return o.sort((a,b)=>a.s-b.s)}
+const sorted=()=>[...st.notices].sort((a,b)=>(b.p?1:0)-(a.p?1:0)||b.i-a.i);
+const maxId=()=>Math.max(0,...st.notices.map(n=>n.i));
+const unread=()=>{try{const x=JSON.parse(ls('seen')||'[]');return st.notices.some(n=>!x.includes(n.i))}catch(e){return false}};
+const pin=()=>{const n=sorted()[0];return n?`<div class="card pin"><b>${n.p?'📌 ':''}${esc(n.t)}</b><span>${esc(n.b.slice(0,140))}</span><small>Latest notice · ${esc(n.d)}</small></div>`:''};
+function vPick(){return `<div class=card><b>Which group are you?</b><span>Enter your roll number</span><input id=rl type=number inputmode=numeric placeholder="Roll 1–183"><button class=act id=go>Continue</button></div><div class=sec>Or pick directly</div><div class=chips style="padding:0;flex-wrap:wrap">${[...G].map((c,i)=>`<button class=chip data-g=${c}>${c}<small>${i*30+1}–${i==5?183:i*30+30}</small></button>`).join('')}</div>`}
+function vToday(){const t=today(),E=evs(g),cur=E.filter(e=>e.s<=t&&t<=e.e),nx=E.find(e=>e.s>t);
+ let h=pin()+`<div class=sec>Today · Group ${g}</div>`;
+ h+=cur.length?cur.map(e=>{const n=Math.round((e.e-e.s)/DAY)+1,i=Math.round((t-e.s)/DAY)+1,l=n-i;return `<div class="card hero"><b>${esc(e.t)}</b><span>${rng(e)}</span><div class=bar><i style="width:${i/n*100}%"></i></div><small>Day ${i} of ${n} · ${l?l+(l>1?' days':' day')+' left':'last day'}</small></div>`}).join(''):'<div class=card><b>No posting today</b><span>Check what’s next below.</span></div>';
+ h+='<div class=sec>Today’s schedule</div>'+vDay(new Date(),1);
+ if(nx){const n=Math.round((nx.s-t)/DAY);h+=`<div class=sec>Up next</div><div class=card><b>${esc(nx.t)}</b><span>${rng(nx)}</span><small>${n==1?'Starts tomorrow':'In '+n+' days'}</small><a href="${cal(nx)}" target=_blank rel=noopener>Add to calendar</a></div>`}
+ return h}
+function vSched(){const t=today();let h='',last='';
+ evs(g).forEach(e=>{const k=e.k=='w'?'Medicine ward · Nov 2026':'Block posting · Dec 2026 – Feb 2027';if(k!=last){h+=`<div class=sec>${k}</div>`+(e.k=='b'?'<div class=card><small>Duty hours · every posting day except Friday</small><span>SGT · Ward round · Roster duty</span><b>9:00–2:30 · break 2:30–4:00 · 4:00–8:30</b></div>':'');last=k}
+  const c=e.s<=t&&t<=e.e?' on':e.e<t?' past':'';
+  h+=`<div class="row${c}"><div><b>${esc(e.t.replace('Medicine ward · ',''))}</b><span>${rng(e)}</span></div>${e.e<t?'':`<a href="${cal(e)}" target=_blank rel=noopener>＋</a>`}</div>`});
+ const DN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+ return `<div class=sec>November 2026 weekly timetable · Group ${g}</div>`+[6,0,1,2,3,4].map(d=>`<div class=sec>${DN[d]}</div>`+vDay(new Date(2026,10,1+d),0,1)).join('')+h}
+function vNotes(){let h='';
+ if(owner)h+=`<div class=card><b>Timetable settings</b><small>SGT cycle start (sets the current subject rotation)</small><input type=date id=sd value="${st.sgt||''}"><small>Sunday after SGT</small><select id=su><option value=dit${st.sun=='lec'?'':' selected'}>Departmental Integrated Teaching</option><option value=lec${st.sun=='lec'?' selected':''}>Lecture · break · lecture</option></select><button class=act id=sg>Save settings</button></div><div class=card><b>Post a notice</b><input id=nt placeholder="Title"><textarea id=nb rows=4 placeholder="Details"></textarea><label><input type=checkbox id=np style="width:auto"> Pin to top</label><button class=act id=pub>Publish notice</button><small id=ms></small></div>`;
+ const L=sorted();
+ return h+(L.length?L.map(n=>`<div class="card${n.p?' pin':''}"><b>${n.p?'📌 ':''}${esc(n.t)}</b><small>${esc(n.d)}</small><p>${esc(n.b)}</p>${owner?`<button class=del data-i="${n.i}">Delete</button>`:''}</div>`).join(''):'<div class=card><b>No notices yet</b><span>Announcements will show up here.</span></div>')}
+const SGT={'0.0':'AB,C,E,F,D','1.0':'DE,F,A,B,C','2.0':'AC,B,D,E,F','3.0':'EF,D,B,C,A','4.0':'BC,A,F,D,E','4.1':'DF,E,C,A,B','4.2':'AC,B,D,E,F'};
+const SN=[['Internal Medicine'],['Paediatrics','Dermatology','Psychiatry'],['Surgery','Urology','Orthopaedics','Paediatric Surgery'],['Eye','ENT'],['Gynaecology & Obstetrics']],SC=[[],[12,24],[20,25,30],[17],[]];
+const wk=()=>{if(!st.sgt)return null;const w=Math.floor((today()-new Date(st.sgt+'T00:00'))/(7*DAY));return w<0?null:w};
+function sg(d,i,w){if(w>=35)return['SGT','Cycle finished. Set a new start date.'];if(d==4&&i==2&&w>=10)return['SGT · Gynaecology & Obstetrics','Combined, all groups'];
+ const r=SGT[d+'.'+i].split(',').findIndex(x=>x.includes(g)),k=w==null?-1:SC[r].filter(c=>w>=c).length;
+ return['SGT · '+(k<0?SN[r].join(' / '):SN[r][k]),w!=null?'':d==4&&i==2?'First 10 weeks, then Gynae & Obs for all':SN[r].length>1?'Rotating subject':'']}
+function slotsRaw(dt,gen){dt=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate());const d=dt.getDay(),w=wk(),W=(()=>{if(gen)return'Ward';const e=evs(g).find(e=>e.k=='w'&&e.s<=dt&&dt<=e.e);return e?'Ward · '+e.t.replace('Medicine ward · ',''):'Ward'})(),M=(h,m=0)=>h*60+m,o=[],add=(a,b,t,n)=>o.push({a,b,t,n});
+ if(d==5)return o;
+ if(dt.getFullYear()==2026&&dt.getMonth()==10){
+  const dit=()=>add(M(12),M(14,30),'Departmental Integrated Teaching','Includes 1:00\u20131:30 prayer & lunch'),
+   lec3=()=>{add(M(12),M(13),'Lecture');add(M(13),M(13,30),'Prayer & lunch');add(M(13,30),M(14,30),'Lecture')};
+  add(M(8),M(9),'Lecture');
+  if(d==2){add(M(9),M(10),'Seminar');add(M(10),M(11),W)}else add(M(9),M(11),W);
+  if(d==6){add(M(11),M(14,30),'General Integrated Teaching','Includes 1:00\u20131:30 prayer & lunch');return o}
+  add(M(11),M(12),...sg(d,0,w));
+  if(d==4)add(M(12),M(13),...sg(d,1,w));
+  else if(d==1)lec3();
+  else if(d==0){if(st.sun=='lec')lec3();else dit()}
+  else dit();
+ }else if(g&&evs(g).some(e=>e.k=='b'&&e.s<=dt&&dt<=e.e)){
+  add(M(9),M(14,30),'Morning duty','SGT \u00b7 Ward round \u00b7 Roster duty');add(M(14,30),M(16),'Break');add(M(16),M(20,30),'Evening duty','Roster duty')}
+ return o}
+function slotsFor(dt,gen){return slotsRaw(dt,gen).map(s=>/^(Lecture|Departmental)/.test(s.t)?{...s,n:'Follow notice group'+(s.n?' · '+s.n:'')}:s)}
+function vDay(dt,hl,gen){const n=new Date(),m=n.getHours()*60+n.getMinutes(),f=x=>{const h=Math.floor(x/60);return(h>12?h-12:h)+':'+String(x%60).padStart(2,'0')},S=slotsFor(dt,gen);
+ return S.length?S.map(s=>`<div class="row${hl&&m>=s.a&&m<s.b?' on':''}"><div><b>${esc(s.t)}</b>${s.n?`<span>${esc(s.n)}</span>`:''}</div><span>${f(s.a)}–${f(s.b)}</span></div>`).join(''):`<div class=card><b>${dt.getDay()==5?'Friday is off':'Nothing scheduled'}</b></div>`}
+let pk='';
+function push(){try{const B=window.AndroidBridge,k=g+'|'+st.sgt+'|'+today().getTime();if(!B||!g||k==pk)return;pk=k;const now=Date.now(),t0=today(),L=[];
+ for(let i=0;i<7;i++){const d=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+i);slotsFor(d).forEach(s=>{const t=+d+s.a*6e4-6e5;if(t>now&&!/lunch|Break/.test(s.t))L.push({t,h:s.t,b:'Starts in 10 min'+(s.n?' · '+s.n:'')})})}
+ evs(g).forEach(e=>{const t=+e.s-4*36e5;if(t>now&&t<now+14*DAY)L.push({t,h:'Starts tomorrow',b:e.t})});
+ B.set(JSON.stringify(L))}catch(e){}}
+const NAV=[['today','Today'],['schedule','Schedule'],['notices','Notices']];
+function render(){
+ const V={today:vToday,schedule:vSched,notices:vNotes};
+ $('#app').innerHTML=`<header><h1>F-31 Routine</h1><small>Faridpur Medical College</small></header>`+(g?`<div class=chips>${[...G].map(c=>`<button class="chip${c==g?' on':''}" data-g=${c}>${c}</button>`).join('')}</div>`:'')+`<main>${tab=='notices'||g?V[tab]():vPick()}<footer>© Made with ♥ by Md Miftahul Islam, F-31172</footer></main><nav>${NAV.map(n=>`<button data-t=${n[0]} class="${tab==n[0]?'on':''}">${n[1]}${n[0]=='notices'&&unread()&&tab!='notices'?'<i class=dot></i>':''}</button>`).join('')}</nav>`;push()}
+const ms=m=>{const x=$('#ms');if(x)x.textContent=m};
+function buildDoc(s){const c=document.documentElement.cloneNode(true);c.querySelector('#app').innerHTML='';c.querySelector('#st').textContent=JSON.stringify(s).replace(/</g,'\\u003c');c.removeAttribute('data-theme');return '<!doctype html>\n'+c.outerHTML}
+async function save(p){try{const a=typeof claude!='undefined'&&await claude.use('artifact');if(!a){ms('Publishing is not available here.');return}ms('Publishing…');await a.publish(buildDoc({...st,...p}))}catch(e){ms(e&&e.code=='conflict'?'Updated elsewhere, reloading…':'Could not publish ('+((e&&e.code)||'error')+')')}}
+$('#app').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.id=='pub'){const t=$('#nt').value.trim();if(!t){ms('Add a title first.');return}b.disabled=true;await save({notices:[{i:Date.now(),t,b:$('#nb').value.trim(),p:$('#np').checked,d:fd(new Date())}].concat(st.notices)});b.disabled=false;return}
+ if(b.id=='sg'){await save({sgt:$('#sd').value,sun:$('#su').value});return}
+ if(b.dataset.i){if(b.dataset.c!='1'){b.dataset.c='1';b.textContent='Tap again to delete';return}await save({notices:st.notices.filter(n=>String(n.i)!=b.dataset.i)});return}
+ if(b.dataset.g){g=b.dataset.g;ls('g',g)}
+ else if(b.id=='go'){const r=+$('#rl').value;if(!(r>=1&&r<=183))return;g=G[Math.min(5,Math.ceil(r/30)-1)];ls('g',g)}
+ else if(b.dataset.t){tab=b.dataset.t;if(tab=='notices')ls('seen',JSON.stringify(st.notices.map(n=>n.i)))}
+ else return;
+ render()};
+function parseTxt(t){const N=[],S={};
+ t.replace(/\r/g,'').split(/\n-{3,}[ \t]*(?:\n|$)/).forEach(b=>{b=b.trim();if(!b)return;const L=b.split('\n');
+  if(L.every(l=>!l.trim()||/^\s*(#|(sgt|sun)\s*:)/i.test(l))){L.forEach(l=>{const m=l.match(/^\s*(sgt|sun)\s*:\s*(\S+)/i);if(m)S[m[1].toLowerCase()]=m[2]});return}
+  let d='';const body=L.slice(1).filter(l=>{const m=l.match(/^date\s*:\s*(.+)/i);if(m){d=m[1].trim();return false}return true}).join('\n').trim();
+  N.push({i:[...b].reduce((h,c)=>(h*31+c.charCodeAt(0))|0,7),t:L[0].replace(/^\*\s*/,'').trim(),b:body,p:L[0].trim()[0]=='*',d})});
+ return{N,S}}
+async function loadRemote(){try{const r=await fetch('notices.txt?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();if(t.trim()[0]=='<')return;const x=parseTxt(t);st.notices=x.N;if(x.S.sgt)st.sgt=x.S.sgt;if(x.S.sun)st.sun=x.S.sun;render()}catch(e){}}
+render();loadRemote();
+(async()=>{try{if(typeof claude=='undefined')return;const u=await claude.use('user');if(u&&await u.isOwner()){owner=true;render()}}catch(e){}})();
+</script>
+
+</body></html>
