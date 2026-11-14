@@ -1,11 +1,14 @@
 # HOW TO USE THIS FILE
-# 1. Edit this file on GitHub (pencil icon) and press Commit. Everyone sees the change when they open the app.
+# 1. Change it from the app (More > Admin) or edit it on GitHub (pencil icon) and press Commit. Everyone sees the change within a minute or two.
 # 2. Blocks are separated by a line that contains only ---
 # 3. Put new notices and daily details at the top, just below the settings.
 #
 # SETTINGS (keep this block first)
 #   sgt: first day of the SGT cycle, written as YYYY-MM-DD (it sets the current SGT subject)
 #   sun: dit (Departmental Integrated Teaching) or lec (lecture, break, lecture) for Sunday afternoon
+#   exam: first day of the Final Professional exam, written as YYYY-MM-DD (the default is 2027-05-02)
+#   apk: the build number of the newest APK, for example 12 (see the Actions tab)
+#   apklink: the download link of the newest APK
 #
 # DAILY DETAILS (one block for each date)
 #   day: YYYY-MM-DD
@@ -15,9 +18,16 @@
 #
 # NOTICE (the first line is the title; start it with * to pin it)
 #   date: 14 Nov 26                     (optional, shown under the title)
-#   expires: 2026-11-15 18:00           (optional, a pinned notice is unpinned after this time)
+#   expires: 2026-11-15 18:00           (optional, after this time the notice leaves the Today page)
+#
+# CONTACTS (one block; each line is: Name | Role | Phone)
+#   contacts:
+#   Dr. Example | Medicine | 01XXXXXXXXX
 sgt:
 sun: dit
+exam: 2027-05-02
+apk:
+apklink:
 ---
 Lecture schedule update
 date: 13 Nov 26
@@ -27,11 +37,3 @@ Tomorrow Lecture schedule
 Integrated teaching
 Topic : AUB
 FP: Jasmine Mam
-day: 2026-11-15
-lecture: Heart failure
-ward AB: Cardiology, 3rd floor
-sgt C: Medicine, 4th floor
-note: Bring your logbook.
----
-*Exam notice
-expires: 2026-11-14 15:35

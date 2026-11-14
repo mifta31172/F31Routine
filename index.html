@@ -2,6 +2,9 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>F-31 Routine · FMC</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'">
+<meta name="theme-color" content="#0b7a5a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 108 108'%3E%3Crect width='108' height='108' rx='24' fill='%230b7a5a'/%3E%3Cpath d='M48 30h12v18h18v12H60v18H48V60H30V48h18z' fill='white'/%3E%3Cpath d='M30 54H45L49 46L54 64L58 50L60 54H78' fill='none' stroke='%230b7a5a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
 :root{--bg:#f4f6f8;--cd:#fff;--tx:#10151c;--mu:#5f6b7a;--ac:#0b7a5a;--as:#e3f4ed;--bd:#e2e6ea;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1217;--cd:#171d25;--tx:#eef2f6;--mu:#9aa7b6;--ac:#3ecf9e;--as:#12332a;--bd:#262f3a;color-scheme:dark}}
@@ -45,7 +48,7 @@ footer{margin:28px 0 0;text-align:center;color:var(--mu);font-size:12px}
 </style><style>artifact-sync,artifact-local{display:contents}</style></head>
 <body>
 <div id="app"></div>
-<script id="st" type="application/json">{"notices":[{"i":1794579225760,"t":"Lecture schedule update","b":"Tomorrow Lecture schedule  \n\n📌11:00-2:30AM\n Integrated teaching \nTopic : AUB\nFP: Jasmine Mam","p":false,"d":"13 Nov 26"}]}</script>
+<script id="st" type="application/json">{"notices":[]}</script>
 <script>
 const $=s=>document.querySelector(s),G='ABCDEF',DAY=864e5;
 const ls=(k,v)=>{try{return v===undefined?localStorage.getItem(k):localStorage.setItem(k,v)}catch(e){return null}};
@@ -64,7 +67,7 @@ Ophthalmology|270210-270215|270127-270201|270113-270118|261230-270104|261215-261
 ENT|270216-270221|270202-270207|270119-270124|270105-270110|261222-261227|261207-261212
 Gynecology|261215-261229|261201-261214|270210-270223|270127-270209|270113-270126|261230-270112
 Obstetrics|261230-270112|261215-261229|261201-261214|270210-270223|270127-270209|270113-270126`;
-let g=ls('g'),tab='today',st={notices:[]},owner=false,home=false;
+let g=ls('g'),tab='today',st={notices:[]},owner=false,home=false,lang=ls('lang')=='bn'?'bn':'en';
 g=/^[A-F]$/.test(g)?g:'';
 try{st=JSON.parse($('#st').textContent)}catch(e){}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -79,7 +82,8 @@ function evs(x){const i=G.indexOf(x),o=[];
  return o.sort((a,b)=>a.s-b.s)}
 const pinned=n=>n.p&&!(n.x&&Date.now()>n.x);
 const exs=x=>new Date(x).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
-const sorted=()=>[...st.notices].sort((a,b)=>(pinned(b)?1:0)-(pinned(a)?1:0)||(a.o!=null&&b.o!=null?a.o-b.o:b.i-a.i));
+const live=n=>!(n.x&&Date.now()>n.x);
+const sorted=()=>[...st.notices].sort((a,b)=>(pinned(b)?1:0)-(pinned(a)?1:0)||(live(b)?1:0)-(live(a)?1:0)||(a.o!=null&&b.o!=null?a.o-b.o:b.i-a.i));
 const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const clk=()=>{const n=new Date();return n.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})+' · '+n.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})};
 const QS=[["The good physician treats the disease; the great physician treats the patient who has the disease.","William Osler"],["Medicine is a science of uncertainty and an art of probability.","William Osler"],["He who studies medicine without books sails an uncharted sea, but he who studies medicine without patients does not go to sea at all.","William Osler"],["Listen to your patient. They are telling you the diagnosis.","Bedside teaching"],["First, do no harm.","Primum non nocere"],["Life is short, the art is long, and judgment is difficult.","Hippocrates, Aphorisms (paraphrased)"],["Common things are common.","Clinical pearl"],["A good history is half the diagnosis.","Clinical pearl"],["Think of horses before zebras, but never forget the zebra.","Clinical pearl"],["Wash your hands. It is still the best infection control.","Clinical pearl"],["See one, do one, teach one.","Medical saying"],["Cure sometimes, treat often, comfort always.","Medical saying"],["Examine every patient as if you must present them to your teacher tomorrow.","Study tip"],["Revise a little every day; exams reward steady effort.","Study tip"],["Say your diagnosis aloud, then explain your reasoning.","Viva tip"],["Small steps every day beat big plans once a month.","Study tip"],["Never be too busy to be kind to a patient.","Bedside teaching"]];
@@ -87,7 +91,7 @@ const QS=[["The good physician treats the disease; the great physician treats th
 const maxId=()=>Math.max(0,...st.notices.map(n=>n.i));
 const unread=()=>{try{const x=JSON.parse(ls('seen')||'[]');return st.notices.some(n=>!x.includes(n.i))}catch(e){return false}};
 const pin=()=>{const L=sorted().filter(pinned).slice(0,3);
- if(!L.length){const n=sorted()[0];return n?`<div class=card><b>${esc(n.t)}</b><span>${esc(n.b.slice(0,140))}</span><small>Latest notice${n.d?' · '+esc(n.d):''}</small></div>`:''}
+ if(!L.length){const n=sorted().find(live);return n?`<div class=card><b>${esc(n.t)}</b><span>${esc(n.b.slice(0,140))}</span><small>Latest notice${n.d?' · '+esc(n.d):''}</small></div>`:''}
  return L.map(n=>`<div class="card pin"><b>📌 ${esc(n.t)}</b><span>${esc(n.b.slice(0,140))}</span><small>${n.x?'Pinned until '+exs(n.x):'Pinned notice'}${n.d?' · '+esc(n.d):''}</small></div>`).join('')};
 const dayNote=(dt,w)=>{const a=((st.days||{})[ymd(dt)]||[]).filter(x=>x.k=='note'&&(!x.g||x.g.includes(g)));return a.length?`<div class="card pin"><b>Note for ${w}</b>${a.map(x=>`<span>${esc(x.v)}</span>`).join('')}</div>`:''};
 const f12=x=>{const h=Math.floor(x/60);return(h>12?h-12:h)+':'+String(x%60).padStart(2,'0')};
@@ -95,13 +99,64 @@ function liveCard(){const n=new Date(),m=n.getHours()*60+n.getMinutes(),S=slotsF
  const c=S.find(s=>m>=s.a&&m<s.b),x=S.find(s=>s.a>m);
  if(c){const br=/lunch|Break/.test(c.t);return `<div class="card ${br?'':'live'}"><b>${br?'☕ ':'<span class=lv></span>LIVE NOW · '}${esc(c.t)}</b><span>${f12(c.a)}–${f12(c.b)}${c.n?' · '+esc(c.n):''}</span><div class=bar><i style="width:${(m-c.a)/(c.b-c.a)*100}%"></i></div><small>${c.b-m} min left${x?' · Next: '+esc(x.t)+' at '+f12(x.a):''}</small></div>`}
  return x?`<div class=card><small>Next class</small><b>${esc(x.t)}</b><span>Starts at ${f12(x.a)}, in ${x.a-m} min</span></div>`:'<div class=card><b>Classes are over for today</b></div>'}
-function quote(){const n=new Date(),m=n.getHours()*60+n.getMinutes();if(n.getDay()==5||m<480||m>=870)return'';const q=QS[(Math.floor(today()/DAY)*7+n.getHours())%QS.length];return `<div class="card q"><span>“${esc(q[0])}”</span><small>${esc(q[1])} · Quote of the hour</small></div>`}
+const PV='5.0',SITE=()=>/^https?:/.test(location.href)?location.href.split('#')[0].split('?')[0]:'';
+const VER=()=>{try{return window.AndroidBridge&&AndroidBridge.ver?+AndroidBridge.ver():0}catch(e){return 0}};
+const foot=()=>'Page v'+PV+(VER()?' · App build '+VER():'')+' · '+(location.protocol=='file:'?'Offline copy':'Live')+' · '+(st.loaded?'Notices updated '+new Date(st.loaded).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'Notices not loaded');
+const HM=["Today’s diagnosis: severe syllabus-itis. Treatment: revision three times a day.","Chai is not a study technique, but it is an excellent motivator.","Rule number one of the ward round: smile first, panic later.","Your future patients are counting on you. Please open the book.","Viva tip: when in doubt, say ‘it depends’, then explain what it depends on.","The syllabus is growing faster than the pile of unread notes. Almost.","Hydrate. Revise. Repeat.","Not all heroes wear capes. Some carry stethoscopes and a sleepy smile.","Attendance is the easiest mark you will ever earn.","Dear coffee, we need to talk about how much we depend on you.","If the notes look blurry, it is not the notes. Take a short nap.","Remember: every consultant was once confused on the first day of the ward."];
+const PN={C:'Cardiology',G:'Gastroenterology',P:'Paediatrics',M:'Medicine',S:'Surgery',O:'Gynae & Obs',E:'Eye',N:'ENT',R:'Orthopaedics',Y:'Psychiatry',D:'Dermatology',U:'Urology',B:'Burn'};
+const PL={
+C:["Chest pain: always think of ACS, aortic dissection, pulmonary embolism, pneumothorax and oesophageal rupture before calling it musculoskeletal.","In suspected STEMI, the ECG makes the diagnosis. Do not wait for the troponin result to start reperfusion.","Jugular venous pressure is the best bedside sign of right-sided filling pressure.","The four pillars of treatment in HFrEF are an ACE inhibitor/ARB/ARNI, a beta-blocker, an MRA and an SGLT2 inhibitor."],
+G:["Melaena suggests an upper GI source until proven otherwise.","In variceal bleeding, start a vasoactive drug and antibiotics early, then arrange endoscopy.","Raised liver enzymes: always ask about alcohol, paracetamol, herbal medicines and hepatitis risk factors.","Ascites with fever or abdominal pain needs a diagnostic tap to look for spontaneous bacterial peritonitis."],
+P:["Plot weight, length or height, and head circumference on a growth chart. The trend matters more than a single point.","A febrile child with a non-blanching rash needs urgent assessment for meningococcal sepsis.","Classify dehydration by the WHO signs, then choose Plan A, B or C.","Fast breathing is the most useful sign of pneumonia in a child; use age-specific cut-offs."],
+M:["Check blood glucose in every patient with altered consciousness.","Review the drug chart first: many new symptoms are side effects.","Hyponatraemia: assess the volume status before deciding the cause.","Take a drug and allergy history before every prescription."],
+S:["A rigid abdomen with guarding is a surgical emergency until proven otherwise.","Resuscitate first (ABC), then investigate, then operate.","A tender, irreducible hernia with vomiting may be strangulated. Refer urgently.","In intestinal obstruction, always examine the hernial orifices."],
+O:["A woman of reproductive age with abdominal pain and a missed period has an ectopic pregnancy until proven otherwise.","Check blood pressure and urine protein at every antenatal visit to detect pre-eclampsia early.","Postpartum haemorrhage: think of the four Ts: Tone, Tissue, Trauma, Thrombin.","Magnesium sulphate is the drug of choice to prevent and treat eclamptic fits."],
+E:["A red eye with pain, photophobia or reduced vision needs urgent referral.","After a chemical injury to the eye, irrigate with plenty of water at once, before anything else."],
+N:["Epistaxis: sit the patient forward and pinch the soft part of the nose for 10–15 minutes.","Persistent unilateral hearing loss needs an ENT assessment."],
+R:["Always check the neurovascular status below a fracture before and after reduction.","In suspected compartment syndrome, pain on passive stretch is the key early sign."],
+Y:["Ask directly about suicidal thoughts. Asking does not increase the risk.","Structure the mental state examination: appearance, behaviour, speech, mood, thought, perception, cognition and insight."],
+D:["Describe a rash before naming it: site, distribution, shape, colour and surface.","Ask about drugs, new creams and sun exposure in every new rash."],
+U:["Painless haematuria needs investigation for cancer until proven otherwise.","Testicular pain in a young man is torsion until proven otherwise."],
+B:["Burns: stop the burning, cool the burn with running water for 20 minutes, then assess the area and depth.","Estimate the burn area with the rule of nines and give fluids by a formula such as Parkland."]};
+const pk2=t=>/cardio/i.test(t)?'C':/gastro/i.test(t)?'G':/surg/i.test(t)?'S':/pa?ediatric/i.test(t)?'P':/medicine/i.test(t)?'M':/gyn|obst/i.test(t)?'O':/ophth|^eye/i.test(t)?'E':/^ENT$/.test(t)?'N':/ortho/i.test(t)?'R':/psych/i.test(t)?'Y':/derm/i.test(t)?'D':/urol/i.test(t)?'U':/burn/i.test(t)?'B':'';
+function pearl(cur){const e=cur.map(x=>({k:pk2(x.t.replace('Medicine ward · ',''))})).find(y=>y.k);if(!e)return'';const a=PL[e.k];return `<div class=card><small>Today’s ${PN[e.k]} pearl</small><span>${esc(a[Math.floor(today()/DAY)%a.length])}</span></div>`}
+const EXAM=()=>st.exam||'2027-05-02',dl=()=>Math.round((new Date(EXAM()+'T00:00')-today())/DAY);
+const examLine=d=>d<0?'The exam period is on. Stay calm and keep going.':d==0?'Today is the day. Best of luck!':d<=7?'Deep breath. You have prepared more than you think.':d<=30?'Chai, notes, repeat.':d<=60?'Time to politely ignore social media.':d<=100?'The countdown is dropping faster than your sleep hours.':d<=200?'Summer is coming soon… and so is the Final Prof.':'Plenty of time. (Famous last words.)';
+function examCard(){const d=dl(),w=Math.floor(d/7);return `<div class="card hero"><small>Final Professional · may start on ${new Date(EXAM()+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</small><b>${d>0?d+(d==1?' day to go':' days to go'):d==0?'It starts today':'Exam period'}</b>${d>0?`<span>${w} ${w==1?'week':'weeks'} ${d%7} ${d%7==1?'day':'days'}</span>`:''}<small>${esc(examLine(d))}</small></div>`}
+const att=()=>{try{return JSON.parse(ls('att')||'[]')}catch(e){return[]}};
+function streak(){const A=new Set(att());let d=today(),n=0;if(!A.has(ymd(d)))d=new Date(d.getFullYear(),d.getMonth(),d.getDate()-1);for(let i=0;i<400;i++){if(d.getDay()!=5){if(A.has(ymd(d)))n++;else break}d=new Date(d.getFullYear(),d.getMonth(),d.getDate()-1)}return n}
+function attCard(){if(!slotsFor(new Date()).length)return'';const t=today(),on=att().includes(ymd(t)),s=streak(),b=evs(g).some(e=>e.k=='b'&&e.s<=t&&t<=e.e);return `<div class=card><small>Attendance</small><b>${on?'✓ Marked present today':'Not marked yet'}</b><span>${s?'🔥 '+s+'-day streak':'Start your streak today'}</span>${b?'<small>Remember to get your logbook signed.</small>':''}<button class=link id=att>${on?'Undo':'Mark present'}</button></div>`}
+const attSummary=()=>{const c=att().filter(x=>x.startsWith(ymd(today()).slice(0,7))).length,s=streak();return `<div class=card><b>${c} ${c==1?'day':'days'} present this month</b><span>${s?'🔥 '+s+'-day streak':'No streak yet. Mark your attendance on the Today page.'}</span></div>`};
+const off=()=>location.protocol=='file:'?'<div class=card><b>Offline copy</b><span>Connect to the internet to see live notices and updates.</span></div>':'';
+const GH=()=>{const m=(location.hostname||'').match(/^([^.]+)\.github\.io$/),r=(location.pathname||'').split('/').filter(Boolean)[0];return m&&r?{o:m[1],r}:null};
+const tok=()=>ls('gh')||'';
+const am=m=>{const x=$('#am');if(x)x.textContent=m},rm=m=>{const x=$('#rm');if(x)x.textContent=m};
+const enc=t=>btoa(Array.from(new TextEncoder().encode(t),x=>String.fromCharCode(x)).join(''));
+async function ghReq(m,body){const c=GH(),r=await fetch('https://api.github.com/repos/'+c.o+'/'+c.r+'/contents/notices.txt',{method:m,cache:'no-store',headers:{Authorization:'Bearer '+tok(),Accept:'application/vnd.github+json','Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});if(!r.ok)throw new Error(r.status);return r.json()}
+const ghGet=async()=>{const j=await ghReq('GET');return{sha:j.sha,txt:new TextDecoder().decode(Uint8Array.from(atob(j.content.replace(/\s/g,'')),c=>c.charCodeAt(0)))}};
+const ghPut=(t,sha,msg)=>ghReq('PUT',{message:msg,content:enc(t),sha});
+const ins=(t,b)=>{const m=/\n-{3,}[ \t]*\n/.exec(t);if(!m)return t.replace(/\s+$/,'')+'\n---\n'+b+'\n';const i=m.index+m[0].length;return t.slice(0,i)+b+'\n---\n'+t.slice(i)};
+function applyTxt(t){const x=parseTxt(t);st.notices=x.N;st.days=x.D;st.contacts=x.C;['sgt','sun','exam','apk','apklink'].forEach(k=>{st[k]=x.S[k]||''});st.loaded=Date.now();st.lerr=0}
+const ghErr=e=>e.message=='401'?'The token is not valid or has expired. Log out and log in again.':e.message=='403'||e.message=='404'?'This token cannot write to the repository. Give it Contents: Read and write access to this repository.':e.message=='409'||e.message=='422'?'The file changed while you were editing. Load it again and retry.':'Something went wrong. Check your internet connection.';
+async function ghDo(fn,ok){try{await fn();st.hold=Date.now()+18e4;render();am(ok)}catch(e){am(ghErr(e))}}
+function adminBox(){let h='<div class=sec>Admin</div>';
+ if(!GH())return h+'<div class=card><span>Admin tools work on the live website. Open the app with an internet connection.</span></div>';
+ if(!tok())return h+'<div class=card><b>Admin login</b><span>Paste your GitHub access token. It stays on this device only.</span><input id=tk type=password autocomplete=off placeholder="GitHub token"><button class=act id=tl>Log in</button><small id=am></small></div>';
+ return h+`<div class=card><b>Post a notice</b><input id=an placeholder="Title"><textarea id=ab rows=3 placeholder="Details"></textarea><label><input type=checkbox id=ap style="width:auto"> Pin to top</label><small>Expires (optional)</small><input id=ax type=datetime-local><button class=act id=apub>Post notice</button></div><div class=card><b>Daily details</b><input id=dd type=date><input id=dg placeholder="Groups for ward and SGT (optional), for example AB"><input id=dl placeholder="Lecture topic"><input id=di placeholder="Integrated teaching topic"><input id=dw placeholder="Ward: department, floor"><input id=ds placeholder="SGT: department, floor"><input id=dn placeholder="Note for the day"><button class=act id=dpub>Save daily details</button></div><div class=card><b>Edit the whole file</b><button class=link id=fl>Load notices.txt</button><textarea id=fe rows=10 placeholder="Tap Load first"></textarea><button class=act id=fs>Save file</button><small id=am></small><button class=link id=lo>Log out</button></div>`}
+const upd=()=>st.apk&&VER()&&+st.apk>VER()?`<div class="card hero"><b>New app version available</b><span>Update to get the latest features.</span>${/^https?:\/\//.test(st.apklink||'')?`<a href="${esc(st.apklink)}" target=_blank rel=noopener>Download update</a>`:''}</div>`:'';
+function shareTxt(t){try{const B=window.AndroidBridge;if(B&&B.share){B.share(t);return}}catch(e){}try{if(navigator.share){navigator.share({text:t}).catch(()=>{});return}}catch(e){}window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}
+function qCard(){const i=Math.floor(today()/DAY)*24+new Date().getHours(),q=QS[i%QS.length],j=HM[(i*7)%HM.length];return `<div class="card q"><span>“${esc(q[0])}”</span><small>${esc(q[1])} · Quote of the hour</small><span>😄 ${esc(j)}</span><small>Light moment</small></div>`}
+function vMore(){const cs=st.contacts||[];return examCard()+'<div class=sec>Attendance</div>'+attSummary()+'<div class=sec>Contacts</div>'+(cs.length?cs.map(c=>`<div class=row><div><b>${esc(c.n)}</b><span>${esc(c.r)}</span></div>${c.p?`<a href="tel:${esc(c.p.replace(/[^+\d]/g,''))}">${esc(c.p)}</a>`:''}</div>`).join(''):'<div class=card><span>No contacts added yet.</span></div>')+'<div class=sec>App</div><div class=card><span>Invite your batchmates to use this app.</span><button class=act id=shapp>Share this app</button><button class=link id=rf>Refresh now</button><button class=link id=cl>Clear my data</button><small id=rm></small></div>'+adminBox()}
+const BN={'Today':'আজ','Schedule':'রুটিন','Notices':'নোটিশ','More':'আরও','⌂ Change roll':'⌂ রোল বদলাও','F-31 Routine':'F-31 রুটিন','Classes are over for today':'আজকের ক্লাস শেষ','Next class':'পরের ক্লাস','No posting today':'আজ কোনো পোস্টিং নেই','Check what’s next below.':'পরের পোস্টিং নিচে দেখো।','Today’s schedule':'আজকের রুটিন','Tomorrow’s schedule':'আগামীকালের রুটিন','Up next':'এরপর যা আছে','Add to calendar':'ক্যালেন্ডারে যোগ করো','Starts tomorrow':'আগামীকাল শুরু','Friday is a holiday':'শুক্রবার ছুটির দিন','Nothing is scheduled':'কিছু নির্ধারিত নেই','Find your class':'তোমার ক্লাস খুঁজে নাও','Enter your roll number to see today’s classes and where they are.':'আজকের ক্লাস কোথায় হবে জানতে তোমার রোল নম্বর লেখো।','Show my classes':'আমার ক্লাস দেখাও','← Back':'← ফিরে যাও','Or choose your group':'অথবা তোমার গ্রুপ বেছে নাও','No notices yet':'এখনো কোনো নোটিশ নেই','New notices will appear here.':'নতুন নোটিশ এখানে দেখা যাবে।','Share':'শেয়ার করো','Pinned notice':'পিন করা নোটিশ','Delete':'মুছে ফেলো','Note for today':'আজকের নোট','Note for tomorrow':'আগামীকালের নোট','Attendance':'উপস্থিতি','Contacts':'যোগাযোগ','Share this app':'অ্যাপটি শেয়ার করো','✓ Marked present today':'✓ আজ উপস্থিতি দেওয়া হয়েছে','Not marked yet':'এখনো উপস্থিতি দেওয়া হয়নি','Start your streak today':'আজই নতুন ধারা শুরু করো','Mark present':'উপস্থিতি দাও','Undo':'বাতিল করো','Remember to get your logbook signed.':'লগবুকে স্বাক্ষর নিতে ভুলো না।','No contacts added yet.':'এখনো কোনো যোগাযোগের তথ্য যোগ করা হয়নি।','Invite your batchmates to use this app.':'ব্যাচমেটদের এই অ্যাপ ব্যবহার করতে বলো।','No streak yet. Mark your attendance on the Today page.':'এখনো ধারা শুরু হয়নি। “আজ” পাতায় উপস্থিতি দাও।','New app version available':'অ্যাপের নতুন সংস্করণ এসেছে','Update to get the latest features.':'নতুন ফিচার পেতে আপডেট করো।','Download update':'আপডেট ডাউনলোড করো','It starts today':'আজই শুরু'};
+const BR=[[/(\d+) min left/,'$1 মিনিট বাকি'],[/Next: (.+?) at (\d+:\d+)/,'পরের ক্লাস: $1, $2 টায়'],[/Starts at (\S+), in (\d+) min/,'$1 টায় শুরু, $2 মিনিট পরে'],[/^Today · Group (\w)/,'আজ · গ্রুপ $1'],[/Day (\d+) of (\d+) · (\d+) days? left/,'দিন $1/$2 · $3 দিন বাকি'],[/Day (\d+) of (\d+) · last day/,'দিন $1/$2 · শেষ দিন'],[/^In (\d+) days$/,'$1 দিন পরে'],[/Faridpur Medical College/,'ফরিদপুর মেডিকেল কলেজ'],[/ · Group /,' · গ্রুপ '],[/ · Roll /,' · রোল '],[/LIVE NOW · /,'এখন চলছে · '],[/Pinned until (.+?)( · |$)/,'$1 পর্যন্ত পিন করা$2'],[/Latest notice/,'সর্বশেষ নোটিশ'],[/Expired/,'মেয়াদ শেষ'],[/Quote of the hour/,'ঘণ্টার উক্তি'],[/Light moment/,'একটু হাসি'],[/Topic: /,'বিষয়: '],[/Follow notice group/,'নোটিশ গ্রুপ অনুসরণ করো'],[/(\d+) days? to go/,'$1 দিন বাকি'],[/(\d+) weeks? (\d+) days?/,'$1 সপ্তাহ $2 দিন'],[/Final Professional · may start on (.+)/,'ফাইনাল প্রফেশনাল · শুরু হতে পারে $1'],[/🔥 (\d+)-day streak/,'🔥 টানা $1 দিন'],[/(\d+) days? present this month/,'এই মাসে $1 দিন উপস্থিত'],[/Today’s (.+) pearl/,'আজকের $1 পার্ল']];
+Object.assign(BN,{'App':'অ্যাপ','Refresh now':'এখনই রিফ্রেশ করো','Clear my data':'আমার ডেটা মুছে ফেলো','Offline copy':'অফলাইন কপি','Connect to the internet to see live notices and updates.':'লাইভ নোটিশ ও আপডেট দেখতে ইন্টারনেটে সংযুক্ত হও।'});
+function bn(h){return h.replace(/>([^<>]+)</g,(m,t)=>{const x=BN[t];if(x!=null)return'>'+x+'<';let y=t;for(const [a,b] of BR)y=y.replace(a,b);return y===t?m:'>'+y+'<'})}
 function vPick(){return `<div class=card><b>Find your class</b><span>Enter your roll number to see today’s classes and where they are.</span><input id=rl type=number inputmode=numeric placeholder="Roll number (1–183)" value="${ls('r')||''}"><button class=act id=go>Show my classes</button><small id=ms></small>${g?'<button class=link id=back>← Back</button>':''}</div><div class=sec>Or choose your group</div><div class=chips style="padding:0;flex-wrap:wrap">${[...G].map((c,i)=>`<button class=chip data-g=${c}>${c}<small>${i*30+1}–${i==5?183:i*30+30}</small></button>`).join('')}</div>`}
 function vToday(){const t=today(),E=evs(g),cur=E.filter(e=>e.s<=t&&t<=e.e),nx=E.find(e=>e.s>t),tm=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1);
- let h=pin()+liveCard()+quote()+`<div class=sec>Today · Group ${g}</div>`;
+ let h=off()+upd()+pin()+liveCard()+qCard()+`<div class=sec>Today · Group ${g}</div>`;
  h+=cur.length?cur.map(e=>{const n=Math.round((e.e-e.s)/DAY)+1,i=Math.round((t-e.s)/DAY)+1,l=n-i;return `<div class="card hero"><b>${esc(e.t)}</b><span>${rng(e)}</span><div class=bar><i style="width:${i/n*100}%"></i></div><small>Day ${i} of ${n} · ${l?l+(l>1?' days':' day')+' left':'last day'}</small></div>`}).join(''):'<div class=card><b>No posting today</b><span>Check what’s next below.</span></div>';
- h+=dayNote(t,'today')+'<div class=sec>Today’s schedule</div>'+vDay(new Date(),1);
- h+=dayNote(tm,'tomorrow')+'<div class=sec>Tomorrow’s schedule</div>'+vDay(tm,0);
+ h+=dayNote(t,'today')+'<div class=sec>Today’s schedule</div>'+vDay(new Date(),1)+attCard()+pearl(cur);
+ h+=dayNote(tm,'tomorrow')+'<div class=sec>Tomorrow’s schedule</div>'+vDay(tm,0)+'<div class=sec></div>'+examCard();
  if(nx){const n=Math.round((nx.s-t)/DAY);h+=`<div class=sec>Up next</div><div class=card><b>${esc(nx.t)}</b><span>${rng(nx)}</span><small>${n==1?'Starts tomorrow':'In '+n+' days'}</small><a href="${cal(nx)}" target=_blank rel=noopener>Add to calendar</a></div>`}
  return h}
 function vSched(){const t=today();let h='',last='';
@@ -113,7 +168,7 @@ function vSched(){const t=today();let h='',last='';
 function vNotes(){let h='';
  if(owner)h+=`<div class=card><b>Timetable settings</b><small>SGT cycle start (sets the current subject rotation)</small><input type=date id=sd value="${st.sgt||''}"><small>Sunday after SGT</small><select id=su><option value=dit${st.sun=='lec'?'':' selected'}>Departmental Integrated Teaching</option><option value=lec${st.sun=='lec'?' selected':''}>Lecture · break · lecture</option></select><button class=act id=sg>Save settings</button></div><div class=card><b>Post a notice</b><input id=nt placeholder="Title"><textarea id=nb rows=4 placeholder="Details"></textarea><label><input type=checkbox id=np style="width:auto"> Pin to top</label><button class=act id=pub>Publish notice</button><small id=ms></small></div>`;
  const L=sorted();
- return h+(L.length?L.map(n=>`<div class="card${pinned(n)?' pin':''}"><b>${pinned(n)?'📌 ':''}${esc(n.t)}</b><small>${esc(n.d||'')}${n.p&&!pinned(n)?(n.d?' · ':'')+'Pin expired':''}</small><p>${esc(n.b)}</p>${owner?`<button class=del data-i="${n.i}">Delete</button>`:''}</div>`).join(''):'<div class=card><b>No notices yet</b><span>New notices will appear here.</span></div>')}
+ return h+(L.length?L.map((n,k)=>`<div class="card${pinned(n)?' pin':''}"><b>${pinned(n)?'📌 ':''}${esc(n.t)}</b><small>${esc(n.d||'')}${!live(n)?(n.d?' · ':'')+'Expired':''}</small><p>${esc(n.b)}</p><button class=link data-sh="${k}">Share</button>${owner?`<button class=del data-i="${n.i}">Delete</button>`:''}</div>`).join(''):'<div class=card><b>No notices yet</b><span>New notices will appear here.</span></div>')}
 const SGT={'0.0':'AB,C,E,F,D','1.0':'DE,F,A,B,C','2.0':'AC,B,D,E,F','3.0':'EF,D,B,C,A','4.0':'BC,A,F,D,E','4.1':'DF,E,C,A,B','4.2':'AC,B,D,E,F'};
 const SN=[['Internal Medicine'],['Paediatrics','Dermatology','Psychiatry'],['Surgery','Urology','Orthopaedics','Paediatric Surgery'],['Eye','ENT'],['Gynaecology & Obstetrics']],SC=[[],[12,24],[20,25,30],[17],[]];
 const wk=()=>{if(!st.sgt)return null;const w=Math.floor((today()-new Date(st.sgt+'T00:00'))/(7*DAY));return w<0?null:w};
@@ -148,10 +203,11 @@ function push(){try{const B=window.AndroidBridge,k=g+'|'+st.sgt+'|'+today().getT
  for(let i=0;i<7;i++){const d=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+i);slotsFor(d).forEach(s=>{const t=+d+s.a*6e4-6e5;if(t>now&&!/lunch|Break/.test(s.t))L.push({t,h:s.t,b:'Starts in 10 min'+(s.n?' · '+s.n:'')})})}
  evs(g).forEach(e=>{const t=+e.s-4*36e5;if(t>now&&t<now+14*DAY)L.push({t,h:'Starts tomorrow',b:e.t})});
  B.set(JSON.stringify(L))}catch(e){}}
-const NAV=[['today','Today'],['schedule','Schedule'],['notices','Notices']];
+const NAV=[['today','Today'],['schedule','Schedule'],['notices','Notices'],['more','More']];
 function render(){
- const V={today:vToday,schedule:vSched,notices:vNotes},r=ls('r'),pick=(!g||home)&&tab!='notices';
- $('#app').innerHTML=`<header><div class=top><span id=clk>${clk()}</span>${g&&!pick?'<button class=link id=rb>⌂ Change roll</button>':''}</div><h1>F-31 Routine</h1><small>Faridpur Medical College${g?' · Group '+g+(r?' · Roll '+r:''):''}</small></header>`+(g&&!pick?`<div class=chips>${[...G].map(c=>`<button class="chip${c==g?' on':''}" data-g=${c}>${c}</button>`).join('')}</div>`:'')+`<main>${pick?vPick():V[tab]()}<footer>© Made with ♥ by Md Miftahul Islam, F-31172</footer></main><nav>${NAV.map(n=>`<button data-t=${n[0]} class="${tab==n[0]?'on':''}">${n[1]}${n[0]=='notices'&&unread()&&tab!='notices'?'<i class=dot></i>':''}</button>`).join('')}</nav>`;push()}
+ const V={today:vToday,schedule:vSched,notices:vNotes,more:vMore},r=ls('r'),pick=(!g||home)&&tab!='notices'&&tab!='more';
+ const H=`<header><div class=top><span id=clk>${clk()}</span><span><button class=link id=lg>${lang=='bn'?'English':'বাংলা'}</button> ${g&&!pick?'<button class=link id=rb>⌂ Change roll</button>':''}</span></div><h1>F-31 Routine</h1><small>Faridpur Medical College${g?' · Group '+g+(r?' · Roll '+r:''):''}</small></header>`+(g&&!pick?`<div class=chips>${[...G].map(c=>`<button class="chip${c==g?' on':''}" data-g=${c}>${c}</button>`).join('')}</div>`:'')+`<main>${pick?vPick():V[tab]()}<footer>© Made with ♥ by Md Miftahul Islam, F-31172<br>${foot()}</footer></main><nav>${NAV.map(n=>`<button data-t=${n[0]} class="${tab==n[0]?'on':''}">${n[1]}${n[0]=='notices'&&unread()&&tab!='notices'?'<i class=dot></i>':''}</button>`).join('')}</nav>`;
+ $('#app').innerHTML=lang=='bn'?bn(H):H;push()}
 const ms=m=>{const x=$('#ms');if(x)x.textContent=m};
 function buildDoc(s){const c=document.documentElement.cloneNode(true);c.querySelector('#app').innerHTML='';c.querySelector('#st').textContent=JSON.stringify(s).replace(/</g,'\\u003c');c.removeAttribute('data-theme');return '<!doctype html>\n'+c.outerHTML}
 async function save(p){try{const a=typeof claude!='undefined'&&await claude.use('artifact');if(!a){ms('Publishing is not available here.');return}ms('Publishing…');await a.publish(buildDoc({...st,...p}))}catch(e){ms(e&&e.code=='conflict'?'Updated elsewhere, reloading…':'Could not publish ('+((e&&e.code)||'error')+')')}}
@@ -159,23 +215,37 @@ $('#app').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
  if(b.id=='pub'){const t=$('#nt').value.trim();if(!t){ms('Add a title first.');return}b.disabled=true;await save({notices:[{i:Date.now(),t,b:$('#nb').value.trim(),p:$('#np').checked,d:fd(new Date())}].concat(st.notices)});b.disabled=false;return}
  if(b.id=='sg'){await save({sgt:$('#sd').value,sun:$('#su').value});return}
  if(b.dataset.i){if(b.dataset.c!='1'){b.dataset.c='1';b.textContent='Tap again to delete';return}await save({notices:st.notices.filter(n=>String(n.i)!=b.dataset.i)});return}
- if(b.id=='rb'){home=true;tab='today'}
+ if(b.id=='rf'){rm('Refreshing…');const ok=await loadRemote(1);rm(ok?'Updated.':'Could not load the latest notices. Check your internet connection.');return}
+ if(b.id=='tl'){const t=$('#tk').value.trim();if(!t){am('Paste the token first.');return}ls('gh',t);try{await ghGet();render()}catch(x){ls('gh','');am(ghErr(x))}return}
+ if(b.id=='lo'){ls('gh','');render();return}
+ if(b.id=='fl'){try{$('#fe').value=(await ghGet()).txt;am('Loaded.')}catch(x){am(ghErr(x))}return}
+ if(b.id=='fs'){const t=$('#fe').value;if(!t.trim()){am('The file cannot be empty.');return}await ghDo(async()=>{const f=await ghGet();await ghPut(t,f.sha,'Edit notices');applyTxt(t)},'Saved. Everyone gets it within a minute or two.');return}
+ if(b.id=='apub'){const t=$('#an').value.trim();if(!t){am('Add a title first.');return}const x=$('#ax').value,body=$('#ab').value.trim(),blk=($('#ap').checked?'*':'')+t+'\ndate: '+fd(new Date())+(x?'\nexpires: '+x.replace('T',' '):'')+(body?'\n'+body:'');await ghDo(async()=>{const f=await ghGet(),n=ins(f.txt,blk);await ghPut(n,f.sha,'Add notice');applyTxt(n)},'Posted. Everyone gets it within a minute or two.');return}
+ if(b.id=='dpub'){const d=$('#dd').value;if(!d){am('Choose a date first.');return}const gs=$('#dg').value.toUpperCase().replace(/[^A-F]/g,''),P=gs?' '+gs:'',L=['day: '+d];[['dl','lecture',''],['di','integrated',''],['dw','ward',P],['ds','sgt',P],['dn','note','']].forEach(a=>{const v=$('#'+a[0]).value.trim();if(v)L.push(a[1]+a[2]+': '+v)});if(L.length<2){am('Fill in at least one field.');return}await ghDo(async()=>{const f=await ghGet(),n=ins(f.txt,L.join('\n'));await ghPut(n,f.sha,'Add daily details');applyTxt(n)},'Saved. Everyone gets it within a minute or two.');return}
+ if(b.id=='cl'){if(b.dataset.c!='1'){b.dataset.c='1';b.textContent='Tap again to confirm';return}['g','r','att','seen','lang','gh'].forEach(k=>{try{localStorage.removeItem(k)}catch(x){}});g='';lang='en';home=false;tab='today';render();return}
+ if(b.id=='lg'){lang=lang=='bn'?'en':'bn';ls('lang',lang)}
+ else if(b.id=='att'){const k=ymd(today());let a=att();a=a.includes(k)?a.filter(x=>x!=k):a.concat(k);ls('att',JSON.stringify(a))}
+ else if(b.id=='shapp'){shareTxt('F-31 Routine: class routine, notices and reminders for FMC F-31.'+(SITE()?'\n'+SITE():''));return}
+ else if(b.dataset.sh){const n=sorted()[+b.dataset.sh];if(n)shareTxt(n.t+'\n'+n.b);return}
+ else if(b.id=='rb'){home=true;tab='today'}
  else if(b.id=='back'){home=false}
  else if(b.dataset.g){g=b.dataset.g;ls('g',g);ls('r','');home=false}
  else if(b.id=='go'){const r=+$('#rl').value;if(!(r>=1&&r<=183)){ms('Please enter a roll number between 1 and 183.');return}g=G[Math.min(5,Math.ceil(r/30)-1)];ls('g',g);ls('r',String(r));home=false}
  else if(b.dataset.t){tab=b.dataset.t;home=false;if(tab=='notices')ls('seen',JSON.stringify(st.notices.map(n=>n.i)))}
  else return;
  render()};
-function parseTxt(t){const N=[],S={},D={};
+function parseTxt(t){const N=[],S={},D={},C=[];
  t.replace(/\r/g,'').split(/\n-{3,}[ \t]*(?:\n|$)/).forEach(b=>{const L=b.split('\n').filter(l=>!/^\s*#/.test(l));while(L.length&&!L[0].trim())L.shift();while(L.length&&!L[L.length-1].trim())L.pop();if(!L.length)return;const F=L[0].trim();
-  if(/^(sgt|sun)\s*:/i.test(F)&&L.every(l=>!l.trim()||/^\s*(sgt|sun)\s*:/i.test(l))){L.forEach(l=>{const m=l.match(/^\s*(sgt|sun)\s*:\s*(\S+)/i);if(m)S[m[1].toLowerCase()]=m[2]});return}
+  if(/^(sgt|sun|exam|apk|apklink)\s*:/i.test(F)&&L.every(l=>!l.trim()||/^\s*(sgt|sun|exam|apk|apklink)\s*:/i.test(l))){L.forEach(l=>{const m=l.match(/^\s*(sgt|sun|exam|apk|apklink)\s*:\s*(\S+)/i);if(m)S[m[1].toLowerCase()]=m[2]});return}
+  if(/^contacts\s*:\s*$/i.test(F)){L.slice(1).map(l=>l.split('|').map(x=>x.trim())).filter(a=>a[0]).forEach(a=>C.push({n:a[0],r:a[1]||'',p:a[2]||''}));return}
   const dm=F.match(/^day\s*:\s*(\d{4}-\d{2}-\d{2})/i);
   if(dm){L.slice(1).forEach(l=>{const m=l.match(/^\s*(lecture|integrated|seminar|ward|sgt|note)(?:\s+([A-Fa-f,\s]+?))?\s*:\s*(.+)$/i);if(m)(D[dm[1]]=D[dm[1]]||[]).push({k:m[1].toLowerCase(),g:(m[2]||'').toUpperCase().replace(/[^A-F]/g,''),v:m[3].trim()})});return}
   let d='',x=null;const body=L.slice(1).filter(l=>{let m=l.match(/^date\s*:\s*(.+)/i);if(m){d=m[1].trim();return false}m=l.match(/^expires\s*:\s*(.+)/i);if(m){const v=m[1].trim(),y=new Date(v.replace(' ','T')+(v.length<=10?'T23:59:59':''));if(!isNaN(y))x=+y;return false}return true}).join('\n').trim();
   N.push({i:[...L.join('\n')].reduce((h,c)=>(h*31+c.charCodeAt(0))|0,7),o:N.length,t:F.replace(/^\*\s*/,'').trim(),b:body,p:F[0]=='*',d,x})});
- return{N,S,D}}
-async function loadRemote(){try{const r=await fetch('notices.txt?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();if(t.trim()[0]=='<')return;const x=parseTxt(t);st.notices=x.N;st.days=x.D;if(x.S.sgt)st.sgt=x.S.sgt;if(x.S.sun)st.sun=x.S.sun;render()}catch(e){}}
+ return{N,S,D,C}}
+async function loadRemote(manual){if(st.hold&&Date.now()<st.hold)return true;try{const r=await fetch('notices.txt?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const t=await r.text();if(t.trim()[0]=='<')throw 0;applyTxt(t)}catch(e){st.lerr=1}const a=document.activeElement;if(manual||!a||!/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))render();return!st.lerr}
 render();loadRemote();
+setInterval(loadRemote,3e5);if(document.addEventListener)document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadRemote()});
 let lm=new Date().getMinutes();
 setInterval(()=>{const n=new Date(),c=$('#clk');if(c)c.textContent=clk();if(n.getMinutes()!=lm){lm=n.getMinutes();const a=document.activeElement;if(!a||!/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))render()}},1000);
 (async()=>{try{if(typeof claude=='undefined')return;const u=await claude.use('user');if(u&&await u.isOwner()){owner=true;render()}}catch(e){}})();
