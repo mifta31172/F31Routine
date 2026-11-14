@@ -1,7 +1,22 @@
-# NOTICES + SETTINGS (edit this file on GitHub, then Commit; everyone sees it)
-# sgt = first day of the SGT cycle (YYYY-MM-DD). sun = dit  or  lec  (Sunday afternoon)
-# Each notice is separated by a line with ---   First line = title (start it with * to pin).
-sgt: 
+# HOW TO USE THIS FILE
+# 1. Edit this file on GitHub (pencil icon) and press Commit. Everyone sees the change when they open the app.
+# 2. Blocks are separated by a line that contains only ---
+# 3. Put new notices and daily details at the top, just below the settings.
+#
+# SETTINGS (keep this block first)
+#   sgt: first day of the SGT cycle, written as YYYY-MM-DD (it sets the current SGT subject)
+#   sun: dit (Departmental Integrated Teaching) or lec (lecture, break, lecture) for Sunday afternoon
+#
+# DAILY DETAILS (one block for each date)
+#   day: YYYY-MM-DD
+#   lecture: topic        seminar: topic        integrated: topic
+#   ward: department, floor        sgt: department, floor        note: a message for the day
+#   To show a line to some groups only, write the group letters after the word. Example:  ward AB: Cardiology, 3rd floor
+#
+# NOTICE (the first line is the title; start it with * to pin it)
+#   date: 14 Nov 26                     (optional, shown under the title)
+#   expires: 2026-11-15 18:00           (optional, a pinned notice is unpinned after this time)
+sgt:
 sun: dit
 ---
 Lecture schedule update
@@ -12,4 +27,3 @@ Tomorrow Lecture schedule
 Integrated teaching
 Topic : AUB
 FP: Jasmine Mam
-___=lecture update:no lecture at 8:00am😁
