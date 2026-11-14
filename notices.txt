@@ -27,3 +27,11 @@ Tomorrow Lecture schedule
 Integrated teaching
 Topic : AUB
 FP: Jasmine Mam
+day: 2026-11-15
+lecture: Heart failure
+ward AB: Cardiology, 3rd floor
+sgt C: Medicine, 4th floor
+note: Bring your logbook.
+---
+*Exam notice
+expires: 2026-11-14 15:35
