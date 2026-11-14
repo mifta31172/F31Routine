@@ -33,6 +33,14 @@ nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--cd);bor
 nav button{flex:1;padding:14px 0;background:none;border:0;color:var(--mu);font-weight:600;font-size:14px;font-family:inherit;position:relative}
 nav button.on{color:var(--ac)}
 footer{margin:28px 0 0;text-align:center;color:var(--mu);font-size:12px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#clk{font-size:13px;font-weight:600;color:var(--ac)}
+.link{background:none;border:1px solid var(--bd);border-radius:14px;padding:4px 10px;color:var(--mu);font-family:inherit;font-size:12px}
+.card .link{align-self:flex-start;margin-top:4px}
+.live{border-color:#e5484d}.live b{font-size:18px}
+.lv{display:inline-block;width:9px;height:9px;border-radius:50%;background:#e5484d;margin-right:6px;animation:pl 1.2s infinite}
+@keyframes pl{50%{opacity:.25}}
+.q span{font-style:italic}
 .dot{position:absolute;top:10px;margin-left:4px;width:8px;height:8px;border-radius:50%;background:#e5484d}
 </style><style>artifact-sync,artifact-local{display:contents}</style></head>
 <body>
@@ -56,7 +64,7 @@ Ophthalmology|270210-270215|270127-270201|270113-270118|261230-270104|261215-261
 ENT|270216-270221|270202-270207|270119-270124|270105-270110|261222-261227|261207-261212
 Gynecology|261215-261229|261201-261214|270210-270223|270127-270209|270113-270126|261230-270112
 Obstetrics|261230-270112|261215-261229|261201-261214|270210-270223|270127-270209|270113-270126`;
-let g=ls('g'),tab='today',st={notices:[]},owner=false;
+let g=ls('g'),tab='today',st={notices:[]},owner=false,home=false;
 g=/^[A-F]$/.test(g)?g:'';
 try{st=JSON.parse($('#st').textContent)}catch(e){}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -69,15 +77,31 @@ function evs(x){const i=G.indexOf(x),o=[];
  o.push({t:'Medicine ward · Feedback class',s:D('261130'),e:D('261130'),k:'w'});
  BLK.split('\n').forEach(r=>{const c=r.split('|'),p=c[i+1].split('-');o.push({t:c[0],s:D(p[0]),e:D(p[1]||p[0]),k:'b'})});
  return o.sort((a,b)=>a.s-b.s)}
-const sorted=()=>[...st.notices].sort((a,b)=>(b.p?1:0)-(a.p?1:0)||b.i-a.i);
+const pinned=n=>n.p&&!(n.x&&Date.now()>n.x);
+const exs=x=>new Date(x).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
+const sorted=()=>[...st.notices].sort((a,b)=>(pinned(b)?1:0)-(pinned(a)?1:0)||(a.o!=null&&b.o!=null?a.o-b.o:b.i-a.i));
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const clk=()=>{const n=new Date();return n.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})+' · '+n.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})};
+const QS=[["The good physician treats the disease; the great physician treats the patient who has the disease.","William Osler"],["Medicine is a science of uncertainty and an art of probability.","William Osler"],["He who studies medicine without books sails an uncharted sea, but he who studies medicine without patients does not go to sea at all.","William Osler"],["Listen to your patient. They are telling you the diagnosis.","Bedside teaching"],["First, do no harm.","Primum non nocere"],["Life is short, the art is long, and judgment is difficult.","Hippocrates, Aphorisms (paraphrased)"],["Common things are common.","Clinical pearl"],["A good history is half the diagnosis.","Clinical pearl"],["Think of horses before zebras, but never forget the zebra.","Clinical pearl"],["Wash your hands. It is still the best infection control.","Clinical pearl"],["See one, do one, teach one.","Medical saying"],["Cure sometimes, treat often, comfort always.","Medical saying"],["Examine every patient as if you must present them to your teacher tomorrow.","Study tip"],["Revise a little every day; exams reward steady effort.","Study tip"],["Say your diagnosis aloud, then explain your reasoning.","Viva tip"],["Small steps every day beat big plans once a month.","Study tip"],["Never be too busy to be kind to a patient.","Bedside teaching"]];
+
 const maxId=()=>Math.max(0,...st.notices.map(n=>n.i));
 const unread=()=>{try{const x=JSON.parse(ls('seen')||'[]');return st.notices.some(n=>!x.includes(n.i))}catch(e){return false}};
-const pin=()=>{const n=sorted()[0];return n?`<div class="card pin"><b>${n.p?'📌 ':''}${esc(n.t)}</b><span>${esc(n.b.slice(0,140))}</span><small>Latest notice · ${esc(n.d)}</small></div>`:''};
-function vPick(){return `<div class=card><b>Which group are you?</b><span>Enter your roll number</span><input id=rl type=number inputmode=numeric placeholder="Roll 1–183"><button class=act id=go>Continue</button></div><div class=sec>Or pick directly</div><div class=chips style="padding:0;flex-wrap:wrap">${[...G].map((c,i)=>`<button class=chip data-g=${c}>${c}<small>${i*30+1}–${i==5?183:i*30+30}</small></button>`).join('')}</div>`}
-function vToday(){const t=today(),E=evs(g),cur=E.filter(e=>e.s<=t&&t<=e.e),nx=E.find(e=>e.s>t);
- let h=pin()+`<div class=sec>Today · Group ${g}</div>`;
+const pin=()=>{const L=sorted().filter(pinned).slice(0,3);
+ if(!L.length){const n=sorted()[0];return n?`<div class=card><b>${esc(n.t)}</b><span>${esc(n.b.slice(0,140))}</span><small>Latest notice${n.d?' · '+esc(n.d):''}</small></div>`:''}
+ return L.map(n=>`<div class="card pin"><b>📌 ${esc(n.t)}</b><span>${esc(n.b.slice(0,140))}</span><small>${n.x?'Pinned until '+exs(n.x):'Pinned notice'}${n.d?' · '+esc(n.d):''}</small></div>`).join('')};
+const dayNote=(dt,w)=>{const a=((st.days||{})[ymd(dt)]||[]).filter(x=>x.k=='note'&&(!x.g||x.g.includes(g)));return a.length?`<div class="card pin"><b>Note for ${w}</b>${a.map(x=>`<span>${esc(x.v)}</span>`).join('')}</div>`:''};
+const f12=x=>{const h=Math.floor(x/60);return(h>12?h-12:h)+':'+String(x%60).padStart(2,'0')};
+function liveCard(){const n=new Date(),m=n.getHours()*60+n.getMinutes(),S=slotsFor(n);if(!S.length)return'';
+ const c=S.find(s=>m>=s.a&&m<s.b),x=S.find(s=>s.a>m);
+ if(c){const br=/lunch|Break/.test(c.t);return `<div class="card ${br?'':'live'}"><b>${br?'☕ ':'<span class=lv></span>LIVE NOW · '}${esc(c.t)}</b><span>${f12(c.a)}–${f12(c.b)}${c.n?' · '+esc(c.n):''}</span><div class=bar><i style="width:${(m-c.a)/(c.b-c.a)*100}%"></i></div><small>${c.b-m} min left${x?' · Next: '+esc(x.t)+' at '+f12(x.a):''}</small></div>`}
+ return x?`<div class=card><small>Next class</small><b>${esc(x.t)}</b><span>Starts at ${f12(x.a)}, in ${x.a-m} min</span></div>`:'<div class=card><b>Classes are over for today</b></div>'}
+function quote(){const n=new Date(),m=n.getHours()*60+n.getMinutes();if(n.getDay()==5||m<480||m>=870)return'';const q=QS[(Math.floor(today()/DAY)*7+n.getHours())%QS.length];return `<div class="card q"><span>“${esc(q[0])}”</span><small>${esc(q[1])} · Quote of the hour</small></div>`}
+function vPick(){return `<div class=card><b>Find your class</b><span>Enter your roll number to see today’s classes and where they are.</span><input id=rl type=number inputmode=numeric placeholder="Roll number (1–183)" value="${ls('r')||''}"><button class=act id=go>Show my classes</button><small id=ms></small>${g?'<button class=link id=back>← Back</button>':''}</div><div class=sec>Or choose your group</div><div class=chips style="padding:0;flex-wrap:wrap">${[...G].map((c,i)=>`<button class=chip data-g=${c}>${c}<small>${i*30+1}–${i==5?183:i*30+30}</small></button>`).join('')}</div>`}
+function vToday(){const t=today(),E=evs(g),cur=E.filter(e=>e.s<=t&&t<=e.e),nx=E.find(e=>e.s>t),tm=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1);
+ let h=pin()+liveCard()+quote()+`<div class=sec>Today · Group ${g}</div>`;
  h+=cur.length?cur.map(e=>{const n=Math.round((e.e-e.s)/DAY)+1,i=Math.round((t-e.s)/DAY)+1,l=n-i;return `<div class="card hero"><b>${esc(e.t)}</b><span>${rng(e)}</span><div class=bar><i style="width:${i/n*100}%"></i></div><small>Day ${i} of ${n} · ${l?l+(l>1?' days':' day')+' left':'last day'}</small></div>`}).join(''):'<div class=card><b>No posting today</b><span>Check what’s next below.</span></div>';
- h+='<div class=sec>Today’s schedule</div>'+vDay(new Date(),1);
+ h+=dayNote(t,'today')+'<div class=sec>Today’s schedule</div>'+vDay(new Date(),1);
+ h+=dayNote(tm,'tomorrow')+'<div class=sec>Tomorrow’s schedule</div>'+vDay(tm,0);
  if(nx){const n=Math.round((nx.s-t)/DAY);h+=`<div class=sec>Up next</div><div class=card><b>${esc(nx.t)}</b><span>${rng(nx)}</span><small>${n==1?'Starts tomorrow':'In '+n+' days'}</small><a href="${cal(nx)}" target=_blank rel=noopener>Add to calendar</a></div>`}
  return h}
 function vSched(){const t=today();let h='',last='';
@@ -89,21 +113,21 @@ function vSched(){const t=today();let h='',last='';
 function vNotes(){let h='';
  if(owner)h+=`<div class=card><b>Timetable settings</b><small>SGT cycle start (sets the current subject rotation)</small><input type=date id=sd value="${st.sgt||''}"><small>Sunday after SGT</small><select id=su><option value=dit${st.sun=='lec'?'':' selected'}>Departmental Integrated Teaching</option><option value=lec${st.sun=='lec'?' selected':''}>Lecture · break · lecture</option></select><button class=act id=sg>Save settings</button></div><div class=card><b>Post a notice</b><input id=nt placeholder="Title"><textarea id=nb rows=4 placeholder="Details"></textarea><label><input type=checkbox id=np style="width:auto"> Pin to top</label><button class=act id=pub>Publish notice</button><small id=ms></small></div>`;
  const L=sorted();
- return h+(L.length?L.map(n=>`<div class="card${n.p?' pin':''}"><b>${n.p?'📌 ':''}${esc(n.t)}</b><small>${esc(n.d)}</small><p>${esc(n.b)}</p>${owner?`<button class=del data-i="${n.i}">Delete</button>`:''}</div>`).join(''):'<div class=card><b>No notices yet</b><span>Announcements will show up here.</span></div>')}
+ return h+(L.length?L.map(n=>`<div class="card${pinned(n)?' pin':''}"><b>${pinned(n)?'📌 ':''}${esc(n.t)}</b><small>${esc(n.d||'')}${n.p&&!pinned(n)?(n.d?' · ':'')+'Pin expired':''}</small><p>${esc(n.b)}</p>${owner?`<button class=del data-i="${n.i}">Delete</button>`:''}</div>`).join(''):'<div class=card><b>No notices yet</b><span>New notices will appear here.</span></div>')}
 const SGT={'0.0':'AB,C,E,F,D','1.0':'DE,F,A,B,C','2.0':'AC,B,D,E,F','3.0':'EF,D,B,C,A','4.0':'BC,A,F,D,E','4.1':'DF,E,C,A,B','4.2':'AC,B,D,E,F'};
 const SN=[['Internal Medicine'],['Paediatrics','Dermatology','Psychiatry'],['Surgery','Urology','Orthopaedics','Paediatric Surgery'],['Eye','ENT'],['Gynaecology & Obstetrics']],SC=[[],[12,24],[20,25,30],[17],[]];
 const wk=()=>{if(!st.sgt)return null;const w=Math.floor((today()-new Date(st.sgt+'T00:00'))/(7*DAY));return w<0?null:w};
-function sg(d,i,w){if(w>=35)return['SGT','Cycle finished. Set a new start date.'];if(d==4&&i==2&&w>=10)return['SGT · Gynaecology & Obstetrics','Combined, all groups'];
+function sg(d,i,w){if(w>=35)return['SGT','Cycle finished. Set a new start date.'];if(d==4&&i==2&&w>=10)return['SGT · Gynaecology & Obstetrics','Combined class for all groups'];
  const r=SGT[d+'.'+i].split(',').findIndex(x=>x.includes(g)),k=w==null?-1:SC[r].filter(c=>w>=c).length;
- return['SGT · '+(k<0?SN[r].join(' / '):SN[r][k]),w!=null?'':d==4&&i==2?'First 10 weeks, then Gynae & Obs for all':SN[r].length>1?'Rotating subject':'']}
+ return['SGT · '+(k<0?SN[r].join(' / '):SN[r][k]),w!=null?'':d==4&&i==2?'First 10 weeks only; then Gynae & Obs for all groups':SN[r].length>1?'Subject changes by rotation':'']}
 function slotsRaw(dt,gen){dt=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate());const d=dt.getDay(),w=wk(),W=(()=>{if(gen)return'Ward';const e=evs(g).find(e=>e.k=='w'&&e.s<=dt&&dt<=e.e);return e?'Ward · '+e.t.replace('Medicine ward · ',''):'Ward'})(),M=(h,m=0)=>h*60+m,o=[],add=(a,b,t,n)=>o.push({a,b,t,n});
  if(d==5)return o;
  if(dt.getFullYear()==2026&&dt.getMonth()==10){
-  const dit=()=>add(M(12),M(14,30),'Departmental Integrated Teaching','Includes 1:00\u20131:30 prayer & lunch'),
+  const dit=()=>add(M(12),M(14,30),'Departmental Integrated Teaching','Includes the prayer and lunch break (1:00\u20131:30)'),
    lec3=()=>{add(M(12),M(13),'Lecture');add(M(13),M(13,30),'Prayer & lunch');add(M(13,30),M(14,30),'Lecture')};
   add(M(8),M(9),'Lecture');
   if(d==2){add(M(9),M(10),'Seminar');add(M(10),M(11),W)}else add(M(9),M(11),W);
-  if(d==6){add(M(11),M(14,30),'General Integrated Teaching','Includes 1:00\u20131:30 prayer & lunch');return o}
+  if(d==6){add(M(11),M(14,30),'General Integrated Teaching','Includes the prayer and lunch break (1:00\u20131:30)');return o}
   add(M(11),M(12),...sg(d,0,w));
   if(d==4)add(M(12),M(13),...sg(d,1,w));
   else if(d==1)lec3();
@@ -112,9 +136,13 @@ function slotsRaw(dt,gen){dt=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate(
  }else if(g&&evs(g).some(e=>e.k=='b'&&e.s<=dt&&dt<=e.e)){
   add(M(9),M(14,30),'Morning duty','SGT \u00b7 Ward round \u00b7 Roster duty');add(M(14,30),M(16),'Break');add(M(16),M(20,30),'Evening duty','Roster duty')}
  return o}
-function slotsFor(dt,gen){return slotsRaw(dt,gen).map(s=>/^(Lecture|Departmental)/.test(s.t)?{...s,n:'Follow notice group'+(s.n?' · '+s.n:'')}:s)}
+const KEY=t=>/^Lecture/.test(t)?['lecture']:/^(Departmental|General)/.test(t)?['integrated']:/^Seminar/.test(t)?['seminar']:/^Ward/.test(t)?['ward']:/^SGT/.test(t)?['sgt']:/^Morning duty/.test(t)?['ward','sgt']:[];
+function slotsFor(dt,gen){const A=gen?[]:(st.days||{})[ymd(dt)]||[];
+ return slotsRaw(dt,gen).map(s=>{const K=KEY(s.t),P=[],v=K.map((k,i)=>{const x=A.filter(y=>y.k==k&&(!y.g||y.g.includes(g))).map(y=>y.v).join('; ');return x?(K.length>1?(k=='ward'?'Ward: ':'SGT: '):/ward|sgt/.test(k)?'📍 ':'Topic: ')+x:''}).filter(Boolean);
+  if(/^(Lecture|Departmental)/.test(s.t)&&!v.length)P.push('Follow notice group');
+  P.push(...v);if(s.n)P.push(s.n);return{...s,n:P.join(' · ')}})}
 function vDay(dt,hl,gen){const n=new Date(),m=n.getHours()*60+n.getMinutes(),f=x=>{const h=Math.floor(x/60);return(h>12?h-12:h)+':'+String(x%60).padStart(2,'0')},S=slotsFor(dt,gen);
- return S.length?S.map(s=>`<div class="row${hl&&m>=s.a&&m<s.b?' on':''}"><div><b>${esc(s.t)}</b>${s.n?`<span>${esc(s.n)}</span>`:''}</div><span>${f(s.a)}–${f(s.b)}</span></div>`).join(''):`<div class=card><b>${dt.getDay()==5?'Friday is off':'Nothing scheduled'}</b></div>`}
+ return S.length?S.map(s=>`<div class="row${hl&&m>=s.a&&m<s.b?' on':''}"><div><b>${esc(s.t)}</b>${s.n?`<span>${esc(s.n)}</span>`:''}</div><span>${f(s.a)}–${f(s.b)}</span></div>`).join(''):`<div class=card><b>${dt.getDay()==5?'Friday is a holiday':'Nothing is scheduled'}</b></div>`}
 let pk='';
 function push(){try{const B=window.AndroidBridge,k=g+'|'+st.sgt+'|'+today().getTime();if(!B||!g||k==pk)return;pk=k;const now=Date.now(),t0=today(),L=[];
  for(let i=0;i<7;i++){const d=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+i);slotsFor(d).forEach(s=>{const t=+d+s.a*6e4-6e5;if(t>now&&!/lunch|Break/.test(s.t))L.push({t,h:s.t,b:'Starts in 10 min'+(s.n?' · '+s.n:'')})})}
@@ -122,8 +150,8 @@ function push(){try{const B=window.AndroidBridge,k=g+'|'+st.sgt+'|'+today().getT
  B.set(JSON.stringify(L))}catch(e){}}
 const NAV=[['today','Today'],['schedule','Schedule'],['notices','Notices']];
 function render(){
- const V={today:vToday,schedule:vSched,notices:vNotes};
- $('#app').innerHTML=`<header><h1>F-31 Routine</h1><small>Faridpur Medical College</small></header>`+(g?`<div class=chips>${[...G].map(c=>`<button class="chip${c==g?' on':''}" data-g=${c}>${c}</button>`).join('')}</div>`:'')+`<main>${tab=='notices'||g?V[tab]():vPick()}<footer>© Made with ♥ by Md Miftahul Islam, F-31172</footer></main><nav>${NAV.map(n=>`<button data-t=${n[0]} class="${tab==n[0]?'on':''}">${n[1]}${n[0]=='notices'&&unread()&&tab!='notices'?'<i class=dot></i>':''}</button>`).join('')}</nav>`;push()}
+ const V={today:vToday,schedule:vSched,notices:vNotes},r=ls('r'),pick=(!g||home)&&tab!='notices';
+ $('#app').innerHTML=`<header><div class=top><span id=clk>${clk()}</span>${g&&!pick?'<button class=link id=rb>⌂ Change roll</button>':''}</div><h1>F-31 Routine</h1><small>Faridpur Medical College${g?' · Group '+g+(r?' · Roll '+r:''):''}</small></header>`+(g&&!pick?`<div class=chips>${[...G].map(c=>`<button class="chip${c==g?' on':''}" data-g=${c}>${c}</button>`).join('')}</div>`:'')+`<main>${pick?vPick():V[tab]()}<footer>© Made with ♥ by Md Miftahul Islam, F-31172</footer></main><nav>${NAV.map(n=>`<button data-t=${n[0]} class="${tab==n[0]?'on':''}">${n[1]}${n[0]=='notices'&&unread()&&tab!='notices'?'<i class=dot></i>':''}</button>`).join('')}</nav>`;push()}
 const ms=m=>{const x=$('#ms');if(x)x.textContent=m};
 function buildDoc(s){const c=document.documentElement.cloneNode(true);c.querySelector('#app').innerHTML='';c.querySelector('#st').textContent=JSON.stringify(s).replace(/</g,'\\u003c');c.removeAttribute('data-theme');return '<!doctype html>\n'+c.outerHTML}
 async function save(p){try{const a=typeof claude!='undefined'&&await claude.use('artifact');if(!a){ms('Publishing is not available here.');return}ms('Publishing…');await a.publish(buildDoc({...st,...p}))}catch(e){ms(e&&e.code=='conflict'?'Updated elsewhere, reloading…':'Could not publish ('+((e&&e.code)||'error')+')')}}
@@ -131,19 +159,25 @@ $('#app').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
  if(b.id=='pub'){const t=$('#nt').value.trim();if(!t){ms('Add a title first.');return}b.disabled=true;await save({notices:[{i:Date.now(),t,b:$('#nb').value.trim(),p:$('#np').checked,d:fd(new Date())}].concat(st.notices)});b.disabled=false;return}
  if(b.id=='sg'){await save({sgt:$('#sd').value,sun:$('#su').value});return}
  if(b.dataset.i){if(b.dataset.c!='1'){b.dataset.c='1';b.textContent='Tap again to delete';return}await save({notices:st.notices.filter(n=>String(n.i)!=b.dataset.i)});return}
- if(b.dataset.g){g=b.dataset.g;ls('g',g)}
- else if(b.id=='go'){const r=+$('#rl').value;if(!(r>=1&&r<=183))return;g=G[Math.min(5,Math.ceil(r/30)-1)];ls('g',g)}
- else if(b.dataset.t){tab=b.dataset.t;if(tab=='notices')ls('seen',JSON.stringify(st.notices.map(n=>n.i)))}
+ if(b.id=='rb'){home=true;tab='today'}
+ else if(b.id=='back'){home=false}
+ else if(b.dataset.g){g=b.dataset.g;ls('g',g);ls('r','');home=false}
+ else if(b.id=='go'){const r=+$('#rl').value;if(!(r>=1&&r<=183)){ms('Please enter a roll number between 1 and 183.');return}g=G[Math.min(5,Math.ceil(r/30)-1)];ls('g',g);ls('r',String(r));home=false}
+ else if(b.dataset.t){tab=b.dataset.t;home=false;if(tab=='notices')ls('seen',JSON.stringify(st.notices.map(n=>n.i)))}
  else return;
  render()};
-function parseTxt(t){const N=[],S={};
- t.replace(/\r/g,'').split(/\n-{3,}[ \t]*(?:\n|$)/).forEach(b=>{b=b.trim();if(!b)return;const L=b.split('\n');
-  if(L.every(l=>!l.trim()||/^\s*(#|(sgt|sun)\s*:)/i.test(l))){L.forEach(l=>{const m=l.match(/^\s*(sgt|sun)\s*:\s*(\S+)/i);if(m)S[m[1].toLowerCase()]=m[2]});return}
-  let d='';const body=L.slice(1).filter(l=>{const m=l.match(/^date\s*:\s*(.+)/i);if(m){d=m[1].trim();return false}return true}).join('\n').trim();
-  N.push({i:[...b].reduce((h,c)=>(h*31+c.charCodeAt(0))|0,7),t:L[0].replace(/^\*\s*/,'').trim(),b:body,p:L[0].trim()[0]=='*',d})});
- return{N,S}}
-async function loadRemote(){try{const r=await fetch('notices.txt?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();if(t.trim()[0]=='<')return;const x=parseTxt(t);st.notices=x.N;if(x.S.sgt)st.sgt=x.S.sgt;if(x.S.sun)st.sun=x.S.sun;render()}catch(e){}}
+function parseTxt(t){const N=[],S={},D={};
+ t.replace(/\r/g,'').split(/\n-{3,}[ \t]*(?:\n|$)/).forEach(b=>{const L=b.split('\n').filter(l=>!/^\s*#/.test(l));while(L.length&&!L[0].trim())L.shift();while(L.length&&!L[L.length-1].trim())L.pop();if(!L.length)return;const F=L[0].trim();
+  if(/^(sgt|sun)\s*:/i.test(F)&&L.every(l=>!l.trim()||/^\s*(sgt|sun)\s*:/i.test(l))){L.forEach(l=>{const m=l.match(/^\s*(sgt|sun)\s*:\s*(\S+)/i);if(m)S[m[1].toLowerCase()]=m[2]});return}
+  const dm=F.match(/^day\s*:\s*(\d{4}-\d{2}-\d{2})/i);
+  if(dm){L.slice(1).forEach(l=>{const m=l.match(/^\s*(lecture|integrated|seminar|ward|sgt|note)(?:\s+([A-Fa-f,\s]+?))?\s*:\s*(.+)$/i);if(m)(D[dm[1]]=D[dm[1]]||[]).push({k:m[1].toLowerCase(),g:(m[2]||'').toUpperCase().replace(/[^A-F]/g,''),v:m[3].trim()})});return}
+  let d='',x=null;const body=L.slice(1).filter(l=>{let m=l.match(/^date\s*:\s*(.+)/i);if(m){d=m[1].trim();return false}m=l.match(/^expires\s*:\s*(.+)/i);if(m){const v=m[1].trim(),y=new Date(v.replace(' ','T')+(v.length<=10?'T23:59:59':''));if(!isNaN(y))x=+y;return false}return true}).join('\n').trim();
+  N.push({i:[...L.join('\n')].reduce((h,c)=>(h*31+c.charCodeAt(0))|0,7),o:N.length,t:F.replace(/^\*\s*/,'').trim(),b:body,p:F[0]=='*',d,x})});
+ return{N,S,D}}
+async function loadRemote(){try{const r=await fetch('notices.txt?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();if(t.trim()[0]=='<')return;const x=parseTxt(t);st.notices=x.N;st.days=x.D;if(x.S.sgt)st.sgt=x.S.sgt;if(x.S.sun)st.sun=x.S.sun;render()}catch(e){}}
 render();loadRemote();
+let lm=new Date().getMinutes();
+setInterval(()=>{const n=new Date(),c=$('#clk');if(c)c.textContent=clk();if(n.getMinutes()!=lm){lm=n.getMinutes();const a=document.activeElement;if(!a||!/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))render()}},1000);
 (async()=>{try{if(typeof claude=='undefined')return;const u=await claude.use('user');if(u&&await u.isOwner()){owner=true;render()}}catch(e){}})();
 </script>
 
