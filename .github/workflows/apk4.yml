@@ -1,0 +1,275 @@
+name: Build APK v4
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ['index.html', '.github/**']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.7' }
+      - name: Accept Android licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+      - name: Create Android project
+        run: |
+          set -e
+          mkdir -p app/src/main/java/com/f31/routine app/src/main/assets
+          cat > settings.gradle.kts <<'EOF'
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositories { google(); mavenCentral() } }
+          rootProject.name = "F31Routine"
+          include(":app")
+          EOF
+          cat > build.gradle.kts <<'EOF'
+          plugins {
+              id("com.android.application") version "8.5.2" apply false
+              id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+          }
+          EOF
+          cat > gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx2g
+          android.useAndroidX=true
+          kotlin.code.style=official
+          EOF
+          cat > app/build.gradle.kts <<'EOF'
+          plugins {
+              id("com.android.application")
+              id("org.jetbrains.kotlin.android")
+          }
+
+          android {
+              namespace = "com.f31.routine"
+              compileSdk = 34
+              defaultConfig {
+                  applicationId = "com.f31.routine"
+                  minSdk = 26
+                  targetSdk = 34
+                  // The GitHub build number goes up with every build, so a new APK installs as an update.
+                  versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+                  versionName = "1.1"
+                  // Leave empty to use the bundled copy (works offline).
+                  // Put your PUBLIC page link here to get live notices from the web version.
+                  buildConfigField("String", "APP_URL", "\"__APP_URL__\"")
+              }
+              signingConfigs {
+                  create("f31") {
+                      storeFile = file("f31.keystore")
+                      storeType = "pkcs12"
+                      storePassword = "f31routine"
+                      keyAlias = "f31"
+                      keyPassword = "f31routine"
+                  }
+              }
+              buildTypes {
+                  getByName("debug") { signingConfig = signingConfigs.getByName("f31") }
+              }
+              buildFeatures { buildConfig = true }
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+              kotlinOptions { jvmTarget = "17" }
+          }
+          EOF
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+              <application
+                  android:allowBackup="false"
+                  android:icon="@android:drawable/sym_def_app_icon"
+                  android:label="F-31 Routine"
+                  android:theme="@android:style/Theme.Material.Light.NoActionBar">
+                  <activity android:name=".MainActivity" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+                  <receiver android:name=".Receiver" android:exported="false" />
+                  <receiver android:name=".BootReceiver" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.BOOT_COMPLETED" />
+                      </intent-filter>
+                  </receiver>
+              </application>
+          </manifest>
+          EOF
+          cat > app/src/main/java/com/f31/routine/MainActivity.kt <<'EOF'
+          package com.f31.routine
+
+          import android.Manifest
+          import android.annotation.SuppressLint
+          import android.app.Activity
+          import android.content.ActivityNotFoundException
+          import android.content.Intent
+          import android.content.pm.PackageManager
+          import android.net.Uri
+          import android.os.Build
+          import android.os.Bundle
+          import android.webkit.JavascriptInterface
+          import android.webkit.WebResourceError
+          import android.webkit.WebResourceRequest
+          import android.webkit.WebResourceResponse
+          import android.webkit.WebView
+          import android.webkit.WebViewClient
+
+          class MainActivity : Activity() {
+              private lateinit var web: WebView
+              private val asset = "file:///android_asset/index.html"
+
+              @SuppressLint("SetJavaScriptEnabled")
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  if (Build.VERSION.SDK_INT >= 33 &&
+                      checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                  ) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+
+                  web = WebView(this)
+                  web.settings.javaScriptEnabled = true
+                  web.settings.domStorageEnabled = true
+                  web.addJavascriptInterface(Bridge(), "AndroidBridge")
+                  web.webViewClient = object : WebViewClient() {
+                      // Phone calls, downloads and other websites open outside the app.
+                      override fun shouldOverrideUrlLoading(v: WebView, r: WebResourceRequest): Boolean {
+                          val u = r.url
+                          val ownHost = if (BuildConfig.APP_URL.isEmpty()) null else Uri.parse(BuildConfig.APP_URL).host
+                          if (u.scheme == "file" || (ownHost != null && u.host == ownHost)) return false
+                          try {
+                              startActivity(Intent(Intent.ACTION_VIEW, u))
+                          } catch (e: ActivityNotFoundException) {
+                          }
+                          return true
+                      }
+
+                      // Offline or unreachable live link: fall back to the bundled copy.
+                      override fun onReceivedError(v: WebView, r: WebResourceRequest, e: WebResourceError) {
+                          if (r.isForMainFrame && v.url != asset) v.loadUrl(asset)
+                      }
+
+                      override fun onReceivedHttpError(v: WebView, r: WebResourceRequest, e: WebResourceResponse) {
+                          if (r.isForMainFrame && v.url != asset) v.loadUrl(asset)
+                      }
+                  }
+                  setContentView(web)
+                  web.loadUrl(if (BuildConfig.APP_URL.isEmpty()) asset else BuildConfig.APP_URL)
+              }
+
+              @Deprecated("Deprecated in Java")
+              override fun onBackPressed() {
+                  if (web.canGoBack()) web.goBack() else super.onBackPressed()
+              }
+
+              // The page talks to the phone through this bridge.
+              inner class Bridge {
+                  @JavascriptInterface
+                  fun set(json: String) = Reminders.schedule(applicationContext, json)
+
+                  @JavascriptInterface
+                  fun ver(): Int = BuildConfig.VERSION_CODE
+
+                  @JavascriptInterface
+                  fun share(text: String) {
+                      runOnUiThread {
+                          val i = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
+                          startActivity(Intent.createChooser(i, null))
+                      }
+                  }
+              }
+          }
+          EOF
+          cat > app/src/main/java/com/f31/routine/Reminders.kt <<'EOF'
+          package com.f31.routine
+
+          import android.app.AlarmManager
+          import android.app.Notification
+          import android.app.NotificationChannel
+          import android.app.NotificationManager
+          import android.app.PendingIntent
+          import android.content.BroadcastReceiver
+          import android.content.Context
+          import android.content.Intent
+          import org.json.JSONArray
+
+          object Reminders {
+              private fun pi(c: Context, id: Int, h: String?, b: String?, create: Boolean): PendingIntent? {
+                  val i = Intent(c, Receiver::class.java).putExtra("h", h).putExtra("b", b)
+                  val f = PendingIntent.FLAG_IMMUTABLE or
+                      (if (create) PendingIntent.FLAG_UPDATE_CURRENT else PendingIntent.FLAG_NO_CREATE)
+                  return PendingIntent.getBroadcast(c, id, i, f)
+              }
+
+              /** Replaces all scheduled reminders with the list the page sends: [{t:epochMs,h:title,b:text}] */
+              fun schedule(c: Context, json: String) {
+                  val am = c.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                  val sp = c.getSharedPreferences("rem", 0)
+                  for (n in 0 until sp.getInt("n", 0)) pi(c, n, null, null, false)?.let { am.cancel(it); it.cancel() }
+                  val a = JSONArray(json)
+                  val now = System.currentTimeMillis()
+                  var k = 0
+                  for (n in 0 until a.length()) {
+                      val o = a.getJSONObject(n)
+                      if (o.getLong("t") <= now) continue
+                      am.setAndAllowWhileIdle(
+                          AlarmManager.RTC_WAKEUP, o.getLong("t"),
+                          pi(c, k, o.getString("h"), o.getString("b"), true)!!
+                      )
+                      k++
+                  }
+                  sp.edit().putInt("n", k).putString("json", json).apply()
+              }
+          }
+
+          /** Re-creates the reminders after the phone restarts. */
+          class BootReceiver : BroadcastReceiver() {
+              override fun onReceive(c: Context, i: Intent) {
+                  Reminders.schedule(c, c.getSharedPreferences("rem", 0).getString("json", "[]")!!)
+              }
+          }
+
+          class Receiver : BroadcastReceiver() {
+              override fun onReceive(c: Context, i: Intent) {
+                  val nm = c.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                  nm.createNotificationChannel(
+                      NotificationChannel("cls", "Class reminders", NotificationManager.IMPORTANCE_HIGH)
+                  )
+                  val open = PendingIntent.getActivity(c, 0, Intent(c, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+                  val n = Notification.Builder(c, "cls")
+                      .setSmallIcon(android.R.drawable.ic_dialog_info)
+                      .setContentTitle(i.getStringExtra("h"))
+                      .setContentText(i.getStringExtra("b"))
+                      .setContentIntent(open)
+                      .setAutoCancel(true)
+                      .build()
+                  nm.notify((System.currentTimeMillis() % Int.MAX_VALUE).toInt(), n)
+              }
+          }
+          EOF
+          echo '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' | base64 -d > app/f31.keystore
+          cp index.html app/src/main/assets/index.html
+          URL="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}/"
+          sed -i "s|__APP_URL__|$URL|" app/build.gradle.kts
+      - run: gradle assembleDebug --no-daemon --stacktrace
+      - run: cp app/build/outputs/apk/debug/app-debug.apk F31-Routine.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: F31-Routine-APK
+          path: F31-Routine.apk
+      - uses: softprops/action-gh-release@v2
+        continue-on-error: true
+        with:
+          tag_name: latest-apk
+          name: F31 Routine APK (latest)
+          files: F31-Routine.apk
+      - name: Show the APK link
+        run: |
+          echo "APK link (build ${GITHUB_RUN_NUMBER}): https://github.com/${GITHUB_REPOSITORY}/releases/download/latest-apk/F31-Routine.apk" >> "$GITHUB_STEP_SUMMARY"
