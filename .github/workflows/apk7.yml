@@ -1,0 +1,349 @@
+name: Build APK v8
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ['index.html', '.github/**']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.7' }
+      - name: Accept Android licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+      - name: Create Android project
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          set -e
+          mkdir -p app/src/main/java/com/f31/routine app/src/main/assets app/src/main/res/values app/src/main/res/drawable app/src/main/res/mipmap-anydpi-v26
+          cat > settings.gradle.kts <<'EOF'
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositories { google(); mavenCentral() } }
+          rootProject.name = "F31Routine"
+          include(":app")
+          EOF
+          cat > build.gradle.kts <<'EOF'
+          plugins {
+              id("com.android.application") version "8.5.2" apply false
+              id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+          }
+          EOF
+          cat > gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx2g
+          android.useAndroidX=true
+          kotlin.code.style=official
+          EOF
+          cat > app/build.gradle.kts <<'EOF'
+          plugins {
+              id("com.android.application")
+              id("org.jetbrains.kotlin.android")
+          }
+
+          android {
+              namespace = "com.f31.routine"
+              compileSdk = 34
+              defaultConfig {
+                  applicationId = "com.f31.routine"
+                  minSdk = 26
+                  targetSdk = 34
+                  // The GitHub build number goes up with every build, so a new APK installs as an update.
+                  versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+                  versionName = "3.0"
+                  // Leave empty to use the bundled copy (works offline).
+                  // Put your PUBLIC page link here to get live notices from the web version.
+                  buildConfigField("String", "APP_URL", "\"__APP_URL__\"")
+              }
+              signingConfigs {
+                  create("f31") {
+                      storeFile = file("f31.keystore")
+                      storeType = "pkcs12"
+                      storePassword = "f31routine"
+                      keyAlias = "f31"
+                      keyPassword = "f31routine"
+                  }
+              }
+              buildTypes {
+                  getByName("debug") {
+                      if (file("f31.keystore").exists()) signingConfig = signingConfigs.getByName("f31")
+                  }
+                  getByName("release") {
+                      isMinifyEnabled = false
+                      isDebuggable = false
+                      if (file("f31.keystore").exists()) signingConfig = signingConfigs.getByName("f31")
+                  }
+              }
+              buildFeatures { buildConfig = true }
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+              kotlinOptions { jvmTarget = "17" }
+          }
+          EOF
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+              <application
+                  android:allowBackup="false"
+                  android:icon="@mipmap/ic_launcher"
+                  android:roundIcon="@mipmap/ic_launcher"
+                  android:label="F-31 Routine"
+                  android:usesCleartextTraffic="false"
+                  android:theme="@android:style/Theme.Material.Light.NoActionBar">
+                  <activity android:name=".MainActivity" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+                  <receiver android:name=".Receiver" android:exported="false" />
+                  <receiver android:name=".BootReceiver" android:exported="false">
+                      <intent-filter>
+                          <action android:name="android.intent.action.BOOT_COMPLETED" />
+                      </intent-filter>
+                  </receiver>
+              </application>
+          </manifest>
+          EOF
+          cat > app/src/main/java/com/f31/routine/MainActivity.kt <<'EOF'
+          package com.f31.routine
+
+          import android.Manifest
+          import android.annotation.SuppressLint
+          import android.app.Activity
+          import android.content.ActivityNotFoundException
+          import android.content.Intent
+          import android.content.pm.PackageManager
+          import android.os.Build
+          import android.os.Bundle
+          import android.webkit.JavascriptInterface
+          import android.webkit.WebResourceRequest
+          import android.webkit.WebView
+          import android.webkit.WebViewClient
+
+          class MainActivity : Activity() {
+              private lateinit var web: WebView
+              private val asset = "file:///android_asset/index.html"
+
+              @SuppressLint("SetJavaScriptEnabled")
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  if (Build.VERSION.SDK_INT >= 33 &&
+                      checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                  ) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+
+                  web = WebView(this)
+                  web.settings.javaScriptEnabled = true
+                  web.settings.domStorageEnabled = true
+                  // Security: the app shows only its own bundled page. No file or content access, safe browsing on.
+                  web.settings.allowFileAccess = false
+                  web.settings.allowContentAccess = false
+                  web.settings.safeBrowsingEnabled = true
+                  web.addJavascriptInterface(Bridge(), "AndroidBridge")
+                  web.webViewClient = object : WebViewClient() {
+                      // Calls, downloads and websites open outside the app. Only the bundled page stays inside.
+                      override fun shouldOverrideUrlLoading(v: WebView, r: WebResourceRequest): Boolean {
+                          if (r.url.scheme == "file") return false
+                          try {
+                              startActivity(Intent(Intent.ACTION_VIEW, r.url))
+                          } catch (e: ActivityNotFoundException) {
+                          }
+                          return true
+                      }
+                  }
+                  setContentView(web)
+                  web.loadUrl(asset)
+              }
+
+              @Deprecated("Deprecated in Java")
+              override fun onBackPressed() {
+                  if (web.canGoBack()) web.goBack() else super.onBackPressed()
+              }
+
+              // The bundled page talks to the phone through this small bridge.
+              inner class Bridge {
+                  @JavascriptInterface
+                  fun set(json: String) = Reminders.schedule(applicationContext, json)
+
+                  @JavascriptInterface
+                  fun ver(): Int = BuildConfig.VERSION_CODE
+
+                  @JavascriptInterface
+                  fun base(): String = BuildConfig.APP_URL
+
+                  @JavascriptInterface
+                  fun share(text: String) {
+                      runOnUiThread {
+                          val i = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
+                          startActivity(Intent.createChooser(i, null))
+                      }
+                  }
+              }
+          }
+          EOF
+          cat > app/src/main/java/com/f31/routine/Reminders.kt <<'EOF'
+          package com.f31.routine
+
+          import android.app.AlarmManager
+          import android.app.Notification
+          import android.app.NotificationChannel
+          import android.app.NotificationManager
+          import android.app.PendingIntent
+          import android.content.BroadcastReceiver
+          import android.content.Context
+          import android.content.Intent
+          import org.json.JSONArray
+
+          object Reminders {
+              private fun pi(c: Context, id: Int, h: String?, b: String?, create: Boolean): PendingIntent? {
+                  val i = Intent(c, Receiver::class.java).putExtra("h", h).putExtra("b", b)
+                  val f = PendingIntent.FLAG_IMMUTABLE or
+                      (if (create) PendingIntent.FLAG_UPDATE_CURRENT else PendingIntent.FLAG_NO_CREATE)
+                  return PendingIntent.getBroadcast(c, id, i, f)
+              }
+
+              /** Replaces all scheduled reminders with the list the page sends: [{t:epochMs,h:title,b:text}] */
+              fun schedule(c: Context, json: String) {
+                  val am = c.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                  val sp = c.getSharedPreferences("rem", 0)
+                  for (n in 0 until sp.getInt("n", 0)) pi(c, n, null, null, false)?.let { am.cancel(it); it.cancel() }
+                  val a = JSONArray(json)
+                  val now = System.currentTimeMillis()
+                  var k = 0
+                  for (n in 0 until a.length()) {
+                      val o = a.getJSONObject(n)
+                      if (o.getLong("t") <= now) continue
+                      am.setAndAllowWhileIdle(
+                          AlarmManager.RTC_WAKEUP, o.getLong("t"),
+                          pi(c, k, o.getString("h"), o.getString("b"), true)!!
+                      )
+                      k++
+                  }
+                  sp.edit().putInt("n", k).putString("json", json).apply()
+              }
+          }
+
+          /** Re-creates the reminders after the phone restarts. */
+          class BootReceiver : BroadcastReceiver() {
+              override fun onReceive(c: Context, i: Intent) {
+                  Reminders.schedule(c, c.getSharedPreferences("rem", 0).getString("json", "[]")!!)
+              }
+          }
+
+          class Receiver : BroadcastReceiver() {
+              override fun onReceive(c: Context, i: Intent) {
+                  val nm = c.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                  nm.createNotificationChannel(
+                      NotificationChannel("cls", "Class reminders", NotificationManager.IMPORTANCE_HIGH)
+                  )
+                  val open = PendingIntent.getActivity(c, 0, Intent(c, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+                  val n = Notification.Builder(c, "cls")
+                      .setSmallIcon(R.drawable.ic_stat)
+                      .setColor(0xFF0B7A5A.toInt())
+                      .setContentTitle(i.getStringExtra("h"))
+                      .setContentText(i.getStringExtra("b"))
+                      .setStyle(Notification.BigTextStyle().bigText(i.getStringExtra("b")))
+                      .setContentIntent(open)
+                      .setAutoCancel(true)
+                      .build()
+                  nm.notify((System.currentTimeMillis() % Int.MAX_VALUE).toInt(), n)
+              }
+          }
+          EOF
+          cat > app/src/main/res/values/colors.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="ic_bg">#0B6B53</color>
+          </resources>
+          EOF
+          cat > app/src/main/res/drawable/ic_fg.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp"
+              android:height="108dp"
+              android:viewportWidth="108"
+              android:viewportHeight="108">
+              <group
+                  android:pivotX="54"
+                  android:pivotY="54"
+                  android:scaleX="0.82"
+                  android:scaleY="0.82">
+                  <path
+                      android:fillColor="#FFFFFF"
+                      android:pathData="M50,22h8v9h9v8h-9v9h-8v-9h-9v-8h9z" />
+                  <path
+                      android:fillColor="#00000000"
+                      android:strokeColor="#FFFFFF"
+                      android:strokeWidth="3.4"
+                      android:strokeLineCap="round"
+                      android:strokeLineJoin="round"
+                      android:pathData="M26,74V58H38M26,66H36M44,74V58L51,67L58,58V74M76,59A7,8 0 1 0 76,73" />
+                  <path
+                      android:fillColor="#00000000"
+                      android:strokeColor="#F5C542"
+                      android:strokeWidth="2"
+                      android:strokeLineCap="round"
+                      android:strokeLineJoin="round"
+                      android:pathData="M38,93V85H43M38,89H42M46,89H49M52,85H57V93H52M52,89H57M61,87L63,85V93" />
+              </group>
+          </vector>
+          EOF
+          cat > app/src/main/res/drawable/ic_stat.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="#FFFFFF"
+                  android:pathData="M10,3h4v7h7v4h-7v7h-4v-7H3v-4h7z" />
+          </vector>
+          EOF
+          cat > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/ic_bg" />
+              <foreground android:drawable="@drawable/ic_fg" />
+          </adaptive-icon>
+          EOF
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > app/f31.keystore
+          else
+            keytool -genkeypair -keystore app/f31.keystore -storetype pkcs12 -alias f31 -keyalg RSA -keysize 2048 -validity 36500 -storepass f31routine -keypass f31routine -dname "CN=F31 Routine"
+          fi
+          cp index.html app/src/main/assets/index.html
+          URL="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}/"
+          sed -i "s|__APP_URL__|$URL|" app/build.gradle.kts
+      - run: gradle assembleRelease --no-daemon --stacktrace
+      - name: Name the APK and write its checksum
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk F31-Routine.apk
+          sha256sum F31-Routine.apk > F31-Routine.apk.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: F31-Routine-APK
+          path: |
+            F31-Routine.apk
+            F31-Routine.apk.sha256
+      - uses: softprops/action-gh-release@v2
+        continue-on-error: true
+        with:
+          tag_name: latest-apk
+          name: F31 Routine APK (latest)
+          files: |
+            F31-Routine.apk
+            F31-Routine.apk.sha256
+      - name: Show the APK link
+        run: |
+          echo "APK link (build ${GITHUB_RUN_NUMBER}): https://github.com/${GITHUB_REPOSITORY}/releases/download/latest-apk/F31-Routine.apk" >> "$GITHUB_STEP_SUMMARY"
