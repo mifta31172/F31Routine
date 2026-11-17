@@ -1,35 +1,30 @@
 # HOW TO USE THIS FILE
-# 1. Change it from the app (More > Admin) or edit it on GitHub (pencil icon) and press Commit. Everyone sees the change within a minute or two.
-# 2. Blocks are separated by a line that contains only ---
-# 3. Put new notices and daily details at the top, just below the settings.
+# Easiest: use the app (More > Admin) to post notices, cancel classes and add classes.
+# You can also edit this file on GitHub (pencil icon) and press Commit. Everyone sees the change within a minute or two.
+# Blocks are separated by a line that contains only ---   Put new items at the top, just below the settings.
 #
 # SETTINGS (keep this block first)
-#   sgt: first day of the SGT cycle, written as YYYY-MM-DD (it sets the current SGT subject)
+#   sgt: first day of the SGT cycle, written as YYYY-MM-DD
 #   sun: dit (Departmental Integrated Teaching) or lec (lecture, break, lecture) for Sunday afternoon
-#   exam: first day of the Final Professional exam, written as YYYY-MM-DD (the default is 2027-05-02)
-#   contact: your WhatsApp or Messenger link, or your mobile number (used by the "Message the admin" button)
-#   apk: the build number of the newest APK, for example 12 (see the Actions tab)
-#   apklink: the download link of the newest APK
+#   exam: first day of the Final Professional exam (the default is 2027-05-02)
+#   contact: your WhatsApp or Messenger link, or your mobile number (for the "Message the admin" button)
+#   apk: the build number of the newest APK (see the Actions tab), apklink: its download link
 #
-# DAILY DETAILS (one block for each date)
+# DAILY BLOCK (one block for each date)
 #   day: YYYY-MM-DD
-#   lecture: topic        seminar: topic        integrated: topic
-#   ward: department, floor        sgt: department, floor        note: a message for the day
-#   To cancel a class for that day, write none. Example:  lecture: none
-#   To show a line to some groups only, write the group letters after the word. Example:  ward AB: Cardiology, 3rd floor
+#   lecture: topic      seminar: topic      integrated: topic
+#   ward: department, floor      sgt: department, floor      note: a message for the day
+#   cancel lecture: reason       (types: lecture, integrated, seminar, ward, sgt, event, all)
+#   cancel sgt AB: reason        (group letters after the type limit it to those groups)
+#   event 14:00-15:00 | Tutorial | Topic | AB     (24-hour time; the last part, the groups, is optional)
 #
 # NOTICE (the first line is the title; start it with * to pin it)
-#   date: 14 Nov 26                     (optional, shown under the title)
-#   expires: 2026-11-15 18:00           (optional, after this time the notice leaves the Today page)
-#   Links in the text, for example study material links, become tappable.
+#   category: General, Academic, Exam, Ward, Urgent, Materials or Event
+#   posted: 2026-11-14 09:30        expires: 2026-11-20 18:00 (optional)
 #
 # CONTACTS (one block; each line is: Name | Role | Phone)
 #   contacts:
 #   Dr. Example | Medicine | 01XXXXXXXXX
-#
-# NAME LIST (optional, to correct a name that is shown in the greeting; each line is: Roll | Name)
-#   roster:
-#   172 | Miftahul
 sgt:
 sun: dit
 exam: 2027-05-02
@@ -38,7 +33,8 @@ apk:
 apklink:
 ---
 Lecture schedule update
-date: 13 Nov 26
+category: Academic
+posted: 2026-11-13 20:00
 Tomorrow Lecture schedule
 
 📌11:00-2:30AM
