@@ -1,3 +1,4 @@
+# FELO 31 · F-31 Student Companion · notices file
 # HOW TO USE THIS FILE
 # Easiest: use the app (More > Admin) to post notices, cancel classes and add classes.
 # You can also edit this file on GitHub (pencil icon) and press Commit. Everyone sees the change within a minute or two.
@@ -35,9 +36,9 @@ apklink:
 Lecture schedule update
 category: Academic
 posted: 2026-11-13 20:00
-Tomorrow Lecture schedule
+Tomorrow’s lecture schedule
 
-📌11:00-2:30AM
+📌11:00 AM - 2:30 PM
 Integrated teaching
 Topic : AUB
 FP: Jasmine Mam
