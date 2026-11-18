@@ -179,6 +179,28 @@ nav button.on{color:var(--ac)}nav button.on::before{content:"";position:absolute
 
 .lockc{border-style:dashed}.lockc .st{filter:grayscale(.5);opacity:.85}
 .bal{background:var(--as);border-radius:12px;padding:8px 12px;font-size:.88em;color:var(--tx)}
+
+.slim{padding:10px 14px!important;gap:6px!important}.slim b{font-size:1.1em!important}
+.mini{padding:12px 14px!important}
+.pkg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 6px}
+.pk{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:12px;border:1px solid var(--bd);background:var(--cd2);color:var(--tx);font:inherit;font-size:.78em;font-weight:600;text-align:center}
+.pk span{font-size:20px}.pk.on{background:var(--ac);border-color:var(--ac);color:var(--on)}
+.lr summary{padding:10px 14px}.lr .rt span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block}
+.le{width:36px;height:36px;border-radius:12px;background:var(--as);display:flex;align-items:center;justify-content:center;font-size:19px;flex:none}
+.lr .inner{display:flex;flex-direction:column;gap:6px}
+.bgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.bgrid div{background:rgba(0,0,0,.26);border-radius:12px;padding:8px 8px;display:block!important}
+.bgrid div.nw{background:rgba(255,255,255,.2);outline:2px solid #ffd98a}
+.bgrid b{font-size:.84em!important;display:block}.bgrid small{display:block;font-size:.74em!important;line-height:1.3}
+.gchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.gc{font:inherit;font-size:.78em;font-weight:700;padding:5px 11px;border-radius:14px;border:1px solid var(--bd);background:var(--cd2);color:var(--mu)}.gc.ok{background:var(--as);color:var(--ac);border-color:var(--ac)}
+.lmi{margin-top:6px;padding-top:8px;border-top:1px dashed var(--bd);font-size:.92em;color:var(--tx)}
+.mini3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mini3 .tile{padding:12px 8px;align-items:center;text-align:center;gap:4px}.mini3 .tile b{font-size:.82em}
+.exh.mini{padding:14px 14px 12px}.exh.mini .cdb{margin:4px 0 8px}.exh.mini .cdb b{font-size:1.45em}
+.row.dn{opacity:.7}.tabs .chip{padding:8px 6px;font-size:.88em}
+.byname{font-size:1.7em!important;font-weight:900!important;background:linear-gradient(90deg,#e11d48,#f59e0b,#16a34a,#2563eb,#9333ea,#e11d48)!important;background-size:200% auto!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;animation:shine 6s linear infinite}
+.bylab{font-weight:800!important;letter-spacing:.08em!important;background:linear-gradient(90deg,#2563eb,#9333ea,#e11d48);-webkit-background-clip:text;background-clip:text;color:transparent}
+@keyframes shine{to{background-position:200% center}}
 </style></head>
 <body>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -270,17 +292,19 @@ const NONE=/^(none|no|nil|off|cancel(l)?ed|nai)\b/i;
 function slotsFor(dt,gen){const A=gen?[]:(st.days||{})[ymd(dt)]||[],mine=y=>!y.g||y.g.includes(g);
  const base=slotsRaw(dt,gen).map(s=>{const K=KEY(s.t),ty=typ(s.t),sj=subj(s.t),V=K.map(k=>A.filter(y=>y.k==k&&mine(y)).map(y=>y.v)),cn=A.find(y=>y.k=='cancel'&&mine(y)&&(y.t=='all'||K.includes(y.t)));
   if(cn)return{...s,ty,sj,canc:1,n:cn.v||'Cancelled by the admin'};
+  const dn=A.find(y=>y.k=='done'&&mine(y)&&(y.t=='all'||K.includes(y.t)));if(dn)return{...s,ty,sj,done:1,n:dn.v||'Class finished early'};
   if(K.length==1&&V[0].length&&V[0].every(v=>NONE.test(v.trim())))return{...s,ty,sj,canc:1,n:'Cancelled as per the notice'};
   const P=[],v=K.map((k,i)=>{const x=V[i].join('; ');return x?(K.length>1?(k=='ward'?'Ward: ':'SGT: '):/ward|sgt/.test(k)?'Place: ':'Topic: ')+x:''}).filter(Boolean);
   if(/^(Lecture|Departmental)/.test(s.t)&&!v.length)P.push('Follow notice group');
   P.push(...v);if(s.n)P.push(s.n);return{...s,ty,sj,n:P.join(' · ')}});
- A.filter(y=>y.k=='event'&&mine(y)).forEach(y=>base.push({a:y.a,b:y.b,t:y.t,n:y.v,ty:typ(y.t),sj:subj(y.v+' '+y.t),ev:1,canc:A.some(c=>c.k=='cancel'&&mine(c)&&(c.t=='all'||c.t=='event'))}));
+ A.filter(y=>y.k=='event'&&mine(y)).forEach(y=>base.push({a:y.a,b:y.b,t:y.t,n:y.v,ty:typ(y.t),sj:subj(y.v+' '+y.t),ev:1,canc:A.some(c=>c.k=='cancel'&&mine(c)&&(c.t=='all'||c.t=='event')),done:A.some(c=>c.k=='done'&&mine(c)&&(c.t=='all'||c.t=='event'))}));
  return base.sort((x,y)=>x.a-y.a)}
 
 function vDay(dt,hl,gen){const n=new Date(),m=n.getHours()*60+n.getMinutes(),S=slotsFor(dt,gen);
- return S.length?`<div class="list fade">${S.map(s=>`<div class="row${hl&&m>=s.a&&m<s.b&&!s.canc?' on':''}${s.canc?' canc':''}">${ico(s.t,s.ty,s.canc)}<div class=rt><b>${esc(s.t)}</b>${s.n?`<span>${esc(s.n)}</span>`:''}</div><div class=rr><span class=tm>${f12(s.a)} – ${f12(s.b)}</span>${s.canc?'<span class="pill red">CANCELLED</span>':hl&&m>=s.a&&m<s.b?'<span class=pill>NOW</span>':''}</div></div>`).join('')}</div>`:`<div class=card><b>${dt.getDay()==5?'Friday is a holiday':HOL[ymd(dt)]?'Public holiday · '+HOL[ymd(dt)]:'Nothing is scheduled'}</b></div>`}
+ return S.length?`<div class="list fade">${S.map(s=>`<div class="row${hl&&m>=s.a&&m<s.b&&!s.canc&&!s.done?' on':''}${s.canc?' canc':''}${s.done?' dn':''}">${ico(s.t,s.ty,s.canc)}<div class=rt><b>${esc(s.t)}</b>${s.n?`<span>${esc(s.n)}</span>`:''}</div><div class=rr><span class=tm>${f12(s.a)} – ${f12(s.b)}</span>${s.canc?'<span class="pill red">CANCELLED</span>':s.done?'<span class="pill ok">DONE ✓</span>':hl&&m>=s.a&&m<s.b?'<span class=pill>NOW</span>':''}</div></div>`).join('')}</div>`:`<div class=card><b>${dt.getDay()==5?'Friday is a holiday':HOL[ymd(dt)]?'Public holiday · '+HOL[ymd(dt)]:'Nothing is scheduled'}</b></div>`}
 function liveCard(){const n=new Date(),m=n.getHours()*60+n.getMinutes(),S=slotsFor(n);if(!S.length)return'';
- const c=S.find(s=>m>=s.a&&m<s.b),x=S.find(s=>s.a>m&&!s.canc&&!/lunch|Break/.test(s.t));
+ const c=S.find(s=>m>=s.a&&m<s.b),x=S.find(s=>s.a>m&&!s.canc&&!s.done&&!/lunch|Break/.test(s.t));
+ if(c&&c.done)return `<div class="card"><div class=tt>${ico(c.t,c.ty)}<div class=rt><b>✓ ${esc(c.t)} is finished</b><span>${esc(c.n||'Ended early')}</span></div></div>${x?`<small>Next: ${esc(x.t)} at ${f12(x.a)}</small>`:''}</div>`;
  if(c){const br=/lunch|Break/.test(c.t);return `<div class="card ${c.canc?'cancc':br?'':'live'}"><div class=tt>${ico(c.t,c.ty,c.canc)}<div class=rt><b>${c.canc?'<span class="pill red">CANCELLED</span> ':br?'':'<span class=lv></span>LIVE NOW · '}${esc(c.t)}</b><span>${f12(c.a)} – ${f12(c.b)}${c.n?' · '+esc(c.n):''}</span></div></div>${c.canc?'':`<div class=bar><i style="width:${(m-c.a)/(c.b-c.a)*100}%"></i></div>`}<small>${c.canc?'Check the Notices tab for details':c.b-m+' min left'}${x?' · Next: '+esc(x.t)+' at '+f12(x.a):''}</small></div>`}
  return x?`<div class=card><small>Next class</small><div class=tt>${ico(x.t,x.ty)}<div class=rt><b>${esc(x.t)}</b><span>Starts at ${f12(x.a)}, in ${x.a-m} min</span></div></div></div>`:'<div class=card><b>Classes are over for today</b><span>Rest well, and revise one small topic.</span></div>'}
 const SK=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
@@ -750,7 +774,21 @@ const PSY=[
 ["People who forgive themselves after a procrastination episode procrastinate less on the next task.","Wohl et al., 2010"],
 ["A 90-minute walk in a natural setting reduced rumination in a small study. Even a short walk outdoors may help your mind reset.","Bratman et al., 2015"],
 ["Smiling and a warm tone help patients feel listened to, and are linked to better patient satisfaction.","Standard communication skills literature"],
-["Learning something while using several senses (see, say, write) creates stronger memory traces than one sense alone.","Paivio, 1991 (dual-coding theory)"]
+["Learning something while using several senses (see, say, write) creates stronger memory traces than one sense alone.","Paivio, 1991 (dual-coding theory)"],
+["Medical students report depression or depressive symptoms at roughly 27% in a large pooled analysis. If you are carrying a heavy load, you are not alone, and talking to someone early genuinely helps.","Rotenstein et al., 2016 (JAMA)"],
+["Doctors have a higher suicide risk than the general population in several large reviews. Looking after your own mind is part of being a good doctor, so reach out to a friend or mentor when things feel heavy.","Schernhammer and Colditz, 2004"],
+["Chronic loneliness was linked with about a 26% higher risk of early death in a large analysis. A short call to a friend today is real preventive medicine.","Holt-Lunstad et al., 2015"],
+["Staying awake for 17 to 19 hours impaired performance about as much as a blood alcohol level of 0.05%. Your all-night study session may be costing you more than it gives.","Williamson and Feyer, 2000"],
+["Expecting more from students raised their actual performance in a classic school study. Believe in your batchmates and yourself, because expectations shape results.","Rosenthal and Jacobson, 1968 (Pygmalion effect)"],
+["Making visible progress on meaningful work, even small progress, was the strongest booster of daily motivation in diary studies. Tick off one small topic today.","Amabile and Kramer, 2011 (progress principle)"],
+["Spending a little money or time on other people made volunteers happier than spending on themselves. Share your notes today and feel the lift.","Dunn, Aknin and Norton, 2008"],
+["Diabetic patients of physicians with high empathy scores had better blood sugar control. Kindness changes clinical outcomes, not only feelings.","Hojat et al., 2011"],
+["About one in five medical students in a US study screened positive for impostor feelings. Feeling like a fraud is common and usually means you care.","Villwock et al., 2016"],
+["When a task is challenging but doable, people can enter a state of deep absorption called flow. Choose a topic that stretches you a little and put your phone away.","Csikszentmihalyi, 1990"],
+["A thirty-second look at something you enjoy, such as nature, can restore attention a little. Look out of the window between chapters.","Lee et al., 2015"],
+["Patients remember being listened to far longer than the exact words of advice. A calm sentence like ‘I am listening’ can change a whole consultation.","Standard communication skills research"],
+["Memory researchers found that the feeling of knowing something is often wrong. Test yourself instead of trusting the feeling of familiarity.","Koriat and Bjork, 2005"],
+["Even a few nights of poor sleep can reduce empathy and emotional reading of faces. Sleep makes you a kinder doctor too.","Killgore et al., 2008"]
 ];
 
 /* ===== personal quote (roll search): 14 x 14 = 196 unique combinations ===== */
@@ -995,6 +1033,637 @@ const DZ2=[
 {n:'Hypoglycaemia',e:'🍯',s:'Endocrinology',c:['Insulin or sulfonylurea overdose in diabetes','Missed meals, alcohol, exercise','Sepsis, liver or adrenal failure, insulinoma'],h:['Sweating, tremor, palpitations and hunger','Confusion, drowsiness, seizures, coma','Whipple triad: low glucose, symptoms, relief by glucose'],i:'Capillary blood glucose at once (below 4 mmol/L, 70 mg/dL). Find the cause.',t:'Treat promptly. Conscious: fast-acting oral carbohydrate. Unconscious: intravenous glucose or intramuscular glucagon.',d:'15 to 20 g of oral glucose, repeat after 15 minutes if needed. Intravenous 10% glucose 150 to 200 mL, or glucagon 1 mg intramuscularly if no access.',a:'Always carry a sugar source, never skip meals on insulin, and teach family members how to help.',r:'ADA and Diabetes UK'}
 ];
 
+/* ===== QUESTION BANKS: [subject key, question template for A->B, template for B->A, source, "A::B" lines] ===== */
+const QBANKS=[
+['X','Which is the antidote for {a} poisoning or overdose?','{b} is the antidote for which poisoning or overdose?','Standard pharmacology and toxicology texts',`Paracetamol::N-acetylcysteine
+Organophosphate::Atropine with pralidoxime
+Opioid::Naloxone
+Benzodiazepine::Flumazenil
+Warfarin::Vitamin K
+Heparin::Protamine sulphate
+Methanol or ethylene glycol::Fomepizole
+Cyanide::Hydroxocobalamin
+Iron::Desferrioxamine
+Digoxin::Digoxin-specific antibody fragments
+Methotrexate::Folinic acid (leucovorin)
+Beta-blocker::Glucagon
+Carbon monoxide::100% oxygen
+Dabigatran::Idarucizumab
+Isoniazid::Pyridoxine (vitamin B6)
+Tricyclic antidepressant::Sodium bicarbonate
+Mercury or arsenic::Dimercaprol
+Calcium channel blocker::Calcium gluconate
+Anticholinergic (atropine)::Physostigmine
+Thrombolytic-related bleeding::Tranexamic acid
+Magnesium sulphate toxicity::Calcium gluconate`],
+['X','What is the mechanism of action of {a}?','Which drug acts by this mechanism: {b}?','Standard pharmacology texts',`Metformin::Reduces hepatic gluconeogenesis (AMPK activation)
+Aspirin::Irreversible inhibition of cyclo-oxygenase
+Clopidogrel::Blocks the platelet P2Y12 ADP receptor
+Warfarin::Inhibits vitamin K epoxide reductase
+Heparin::Potentiates antithrombin III
+Omeprazole::Irreversibly inhibits the gastric H+/K+ ATPase
+Furosemide::Blocks the Na-K-2Cl cotransporter in the thick ascending limb
+Spironolactone::Aldosterone receptor antagonist
+Amlodipine::Blocks L-type calcium channels
+Enalapril::Inhibits angiotensin-converting enzyme
+Losartan::Blocks angiotensin II type 1 receptors
+Atenolol::Selective beta-1 receptor blockade
+Digoxin::Inhibits the Na+/K+ ATPase pump
+Amiodarone::Blocks potassium channels (class III)
+Salbutamol::Beta-2 receptor agonist
+Ipratropium::Muscarinic receptor antagonist
+Ciprofloxacin::Inhibits bacterial DNA gyrase
+Penicillin::Inhibits bacterial cell wall synthesis
+Gentamicin::Binds the 30S ribosomal subunit
+Azithromycin::Binds the 50S ribosomal subunit
+Rifampicin::Inhibits DNA-dependent RNA polymerase
+Isoniazid::Inhibits mycolic acid synthesis
+Fluconazole::Inhibits ergosterol synthesis
+Allopurinol::Inhibits xanthine oxidase
+Methotrexate::Inhibits dihydrofolate reductase
+Atorvastatin::Inhibits HMG-CoA reductase
+Sildenafil::Inhibits phosphodiesterase-5
+Ondansetron::5-HT3 receptor antagonist
+Morphine::Mu opioid receptor agonist
+Tamoxifen::Selective oestrogen receptor modulator
+Glibenclamide::Closes K-ATP channels to increase insulin release
+Acarbose::Inhibits intestinal alpha-glucosidase
+Empagliflozin::Inhibits renal SGLT2
+Levodopa::Dopamine precursor that crosses the blood-brain barrier`],
+['X','What is a classic adverse effect of {a}?','{b} is a classic adverse effect of which drug?','Standard pharmacology texts (Goodman and Gilman, KD Tripathi)',`ACE inhibitors::Dry cough
+Amiodarone::Pulmonary fibrosis and thyroid dysfunction
+Isoniazid::Peripheral neuropathy and hepatitis
+Rifampicin::Orange discolouration of body fluids
+Ethambutol::Optic neuritis
+Pyrazinamide::Hyperuricaemia
+Gentamicin::Nephrotoxicity and ototoxicity
+Chloramphenicol::Aplastic anaemia and grey baby syndrome
+Phenytoin::Gingival hyperplasia
+Sodium valproate::Hepatotoxicity and neural tube defects
+Lithium::Tremor and nephrogenic diabetes insipidus
+Methotrexate::Bone marrow suppression and hepatic fibrosis
+Cyclophosphamide::Haemorrhagic cystitis
+Doxorubicin::Dilated cardiomyopathy
+Bleomycin::Pulmonary fibrosis
+Vincristine::Peripheral neuropathy
+Digoxin::Xanthopsia (yellow vision) and arrhythmias
+Spironolactone::Gynaecomastia and hyperkalaemia
+Metformin::Lactic acidosis
+Sulfonylureas::Hypoglycaemia
+Long-term prednisolone::Cushingoid features and osteoporosis
+Warfarin::Bleeding and teratogenicity
+Heparin::Heparin-induced thrombocytopenia
+Tetracycline::Tooth discolouration in children
+Fluoroquinolones::Tendon rupture
+Clindamycin::Pseudomembranous colitis
+Chlorpromazine::Extrapyramidal effects and sedation
+Isotretinoin::Teratogenicity
+Statins::Myopathy and rhabdomyolysis
+Beta-blockers::Bradycardia and bronchospasm
+Hydralazine::Drug-induced lupus
+Dapsone::Haemolysis in G6PD deficiency
+Quinine::Cinchonism (tinnitus and headache)
+NSAIDs::Peptic ulceration and renal impairment
+Ciclosporin::Hirsutism and hypertension`],
+['X','Which drug is an example of: {a}?','{b} belongs to which drug class?','Standard pharmacology texts',`Loop diuretic::Furosemide
+Thiazide diuretic::Hydrochlorothiazide
+Potassium-sparing diuretic::Amiloride
+ACE inhibitor::Ramipril
+Angiotensin receptor blocker::Telmisartan
+Dihydropyridine calcium channel blocker::Nifedipine
+Nitrate::Glyceryl trinitrate
+Statin::Rosuvastatin
+Fibrate::Fenofibrate
+Third-generation cephalosporin::Ceftriaxone
+Macrolide antibiotic::Erythromycin
+Aminoglycoside::Amikacin
+Fluoroquinolone::Levofloxacin
+Carbapenem::Meropenem
+Glycopeptide antibiotic::Vancomycin
+Tetracycline::Doxycycline
+Sulfonylurea::Gliclazide
+DPP-4 inhibitor::Sitagliptin
+GLP-1 receptor agonist::Liraglutide
+Proton pump inhibitor::Pantoprazole
+H2 receptor blocker::Famotidine
+Atypical antipsychotic::Olanzapine
+SSRI antidepressant::Fluoxetine
+Tricyclic antidepressant::Amitriptyline
+Benzodiazepine::Diazepam
+Opioid analgesic::Morphine
+Selective COX-2 inhibitor::Celecoxib
+Systemic corticosteroid::Prednisolone
+Anthelmintic::Albendazole
+Artemisinin antimalarial::Artemether
+Antiviral for herpes simplex::Aciclovir
+5-HT3 antagonist antiemetic::Ondansetron
+Short-acting beta-2 agonist::Salbutamol
+Long-acting muscarinic antagonist::Tiotropium
+Direct oral anticoagulant (factor Xa inhibitor)::Rivaroxaban
+Thienopyridine antiplatelet::Clopidogrel
+Thrombolytic agent::Streptokinase
+Bisphosphonate::Alendronic acid
+Calcineurin inhibitor::Tacrolimus`],
+['W','What is the causative organism of {a}?','{b} is the causative organism of which disease?','Standard microbiology texts (Ananthanarayan, Jawetz)',`Typhoid fever::Salmonella Typhi
+Cholera::Vibrio cholerae
+Bacillary dysentery::Shigella species
+Tetanus::Clostridium tetani
+Diphtheria::Corynebacterium diphtheriae
+Whooping cough::Bordetella pertussis
+Tuberculosis::Mycobacterium tuberculosis
+Leprosy::Mycobacterium leprae
+Syphilis::Treponema pallidum
+Gonorrhoea::Neisseria gonorrhoeae
+Meningococcal meningitis::Neisseria meningitidis
+Scarlet fever::Streptococcus pyogenes
+Anthrax::Bacillus anthracis
+Plague::Yersinia pestis
+Brucellosis::Brucella species
+Leptospirosis::Leptospira interrogans
+Scrub typhus::Orientia tsutsugamushi
+Lyme disease::Borrelia burgdorferi
+Peptic ulcer disease::Helicobacter pylori
+Pseudomembranous colitis::Clostridioides difficile
+Botulism::Clostridium botulinum
+Gas gangrene::Clostridium perfringens
+Rabies::Lyssavirus
+Dengue::Dengue virus
+Chikungunya::Chikungunya virus
+Kala-azar::Leishmania donovani
+Severe malaria::Plasmodium falciparum
+Amoebic dysentery::Entamoeba histolytica
+Giardiasis::Giardia lamblia
+Lymphatic filariasis::Wuchereria bancrofti
+Hookworm anaemia::Ancylostoma duodenale
+Scabies::Sarcoptes scabiei
+Oral thrush::Candida albicans
+Cryptococcal meningitis::Cryptococcus neoformans
+Pneumocystis pneumonia in HIV::Pneumocystis jirovecii
+Infectious mononucleosis::Epstein-Barr virus
+Chickenpox::Varicella zoster virus
+Cervical cancer (main cause)::Human papillomavirus
+Legionnaires disease::Legionella pneumophila`],
+['W','{a} is classically used to diagnose or identify:','Which test, stain or finding is classically linked to: {b}?','Standard microbiology texts',`Ziehl-Neelsen stain::Mycobacteria (acid-fast bacilli)
+India ink::Cryptococcus neoformans
+Dark-field microscopy::Treponema pallidum
+Widal test::Enteric (typhoid) fever
+Weil-Felix test::Rickettsial infections
+Paul-Bunnell test::Infectious mononucleosis
+Mantoux test::Tuberculosis infection
+Schick test::Susceptibility to diphtheria
+VDRL::Syphilis screening
+Negri bodies::Rabies
+Koplik spots::Measles
+TCBS agar::Vibrio cholerae
+Loeffler's serum slope::Corynebacterium diphtheriae
+Albert stain::Metachromatic granules of diphtheria bacilli
+Gram-negative diplococci::Neisseria
+Tzanck smear::Herpes virus infections
+Kinyoun stain::Mycobacteria and Nocardia (modified acid-fast)
+Optochin sensitivity::Streptococcus pneumoniae
+Coagulase test::Staphylococcus aureus
+Catalase test::Differentiates Staphylococcus from Streptococcus
+Oxidase test::Differentiates Pseudomonas from Enterobacteriaceae
+Giemsa-stained thick film::Malaria parasites
+Rapid antigen NS1::Early dengue infection`],
+['A','Which nerve supplies {a}?','{b} supplies which muscle or muscle group?','Standard anatomy texts (Gray, BD Chaurasia)',`Deltoid::Axillary nerve
+Biceps brachii::Musculocutaneous nerve
+Triceps brachii::Radial nerve
+Supraspinatus::Suprascapular nerve
+Serratus anterior::Long thoracic nerve
+Latissimus dorsi::Thoracodorsal nerve
+Trapezius::Accessory nerve (CN XI)
+Diaphragm::Phrenic nerve
+Quadriceps femoris::Femoral nerve
+Gluteus maximus::Inferior gluteal nerve
+Gluteus medius::Superior gluteal nerve
+Adductor longus::Obturator nerve
+Tibialis anterior::Deep peroneal nerve
+Peroneus longus::Superficial peroneal nerve
+Lateral rectus::Abducens nerve (CN VI)
+Superior oblique::Trochlear nerve (CN IV)
+Masseter::Mandibular division of the trigeminal nerve
+Muscles of facial expression::Facial nerve
+Stylopharyngeus::Glossopharyngeal nerve
+Cricothyroid::External laryngeal nerve
+Intrinsic laryngeal muscles (except cricothyroid)::Recurrent laryngeal nerve
+Flexor carpi ulnaris::Ulnar nerve
+Pronator teres::Median nerve
+Gastrocnemius::Tibial nerve`],
+['A','Which nerve injury classically causes {a}?','Injury to the {b} classically produces which feature?','Standard anatomy and orthopaedic texts',`Wrist drop::Radial nerve
+Claw hand::Ulnar nerve
+Ape-hand deformity::Median nerve
+Flattened shoulder with deltoid weakness::Axillary nerve
+Foot drop::Common peroneal nerve
+Winging of the scapula::Long thoracic nerve
+Hoarseness of voice::Recurrent laryngeal nerve
+Trendelenburg sign::Superior gluteal nerve
+Waiter's tip posture::Upper trunk (Erb's palsy, C5-C6)
+Claw hand with Horner syndrome::Lower trunk (Klumpke's palsy, C8-T1)
+Medial deviation of the eye with horizontal diplopia::Abducens nerve
+Ptosis with a down-and-out eye::Oculomotor nerve
+Tongue deviating towards the side of the lesion::Hypoglossal nerve
+Drooping of the shoulder::Accessory nerve
+Weak knee extension::Femoral nerve
+Loss of plantar flexion and sole sensation::Tibial nerve
+Unilateral facial paralysis including the forehead::Facial nerve (lower motor neuron)
+Weak elbow flexion with loss of lateral forearm sensation::Musculocutaneous nerve`],
+['H','Deficiency of {a} classically causes:','{b} is classically caused by deficiency of:','Standard biochemistry texts (Harper, Lehninger)',`Vitamin A::Night blindness and xerophthalmia
+Thiamine (B1)::Beriberi and Wernicke encephalopathy
+Riboflavin (B2)::Angular stomatitis and cheilosis
+Niacin (B3)::Pellagra (dermatitis, diarrhoea, dementia)
+Vitamin B12::Megaloblastic anaemia with subacute combined degeneration
+Folate::Megaloblastic anaemia and neural tube defects
+Vitamin C::Scurvy
+Vitamin D::Rickets in children and osteomalacia in adults
+Vitamin K::Bleeding tendency and haemorrhagic disease of the newborn
+Iodine::Goitre and cretinism
+Iron::Microcytic hypochromic anaemia
+Zinc::Acrodermatitis enteropathica
+Pyridoxine (B6)::Sideroblastic anaemia and peripheral neuropathy
+Vitamin E::Haemolytic anaemia in premature infants`],
+['H','Which cell or gland secretes {a}?','{b} secretes which hormone?','Standard physiology and endocrinology texts (Guyton, Ganong)',`Insulin::Beta cells of the pancreatic islets
+Glucagon::Alpha cells of the pancreatic islets
+Aldosterone::Zona glomerulosa of the adrenal cortex
+Cortisol::Zona fasciculata of the adrenal cortex
+Adrenaline::Adrenal medulla
+Erythropoietin::Interstitial cells of the renal cortex
+Renin::Juxtaglomerular cells of the kidney
+Gastrin::G cells of the gastric antrum
+Secretin::S cells of the duodenum
+Cholecystokinin::I cells of the duodenum
+Somatostatin::Delta cells
+Calcitonin::Parafollicular C cells of the thyroid
+Parathyroid hormone::Chief cells of the parathyroid gland
+Thyroxine::Follicular cells of the thyroid
+Growth hormone::Somatotrophs of the anterior pituitary
+Prolactin::Lactotrophs of the anterior pituitary
+Human chorionic gonadotrophin::Syncytiotrophoblast
+Testosterone::Leydig cells
+Inhibin::Sertoli cells
+Leptin::Adipocytes
+Atrial natriuretic peptide::Atrial myocytes
+Melatonin::Pineal gland
+Angiotensinogen::Liver
+Progesterone in early pregnancy::Corpus luteum`],
+['H','Which enzyme is deficient in {a}?','Deficiency of {b} causes which disorder?','Standard biochemistry texts (Harper, Lehninger)',`Phenylketonuria::Phenylalanine hydroxylase
+G6PD deficiency::Glucose-6-phosphate dehydrogenase
+Von Gierke disease::Glucose-6-phosphatase
+Pompe disease::Acid alpha-glucosidase
+McArdle disease::Muscle glycogen phosphorylase
+Gaucher disease::Glucocerebrosidase
+Tay-Sachs disease::Hexosaminidase A
+Fabry disease::Alpha-galactosidase A
+Niemann-Pick disease::Sphingomyelinase
+Lesch-Nyhan syndrome::HGPRT
+Classic galactosaemia::Galactose-1-phosphate uridyltransferase
+Albinism::Tyrosinase
+Alkaptonuria::Homogentisate oxidase
+Maple syrup urine disease::Branched-chain ketoacid dehydrogenase
+Homocystinuria::Cystathionine beta-synthase`],
+['C','{a} is classically associated with:','Which finding is classically associated with {b}?','Davidson, Harrison and standard cardiology texts',`Concave-upward ST elevation with PR depression::Acute pericarditis
+Delta wave with short PR interval::Wolff-Parkinson-White syndrome
+Sawtooth flutter waves::Atrial flutter
+Irregularly irregular rhythm without P waves::Atrial fibrillation
+Tall tented T waves::Hyperkalaemia
+Prolonged QT interval::Hypocalcaemia
+S1Q3T3 pattern::Pulmonary embolism
+Electrical alternans::Large pericardial effusion
+Pulsus paradoxus::Cardiac tamponade
+Mid-diastolic rumbling murmur with opening snap::Mitral stenosis
+Collapsing (water-hammer) pulse::Aortic regurgitation
+Ejection systolic murmur radiating to the carotids::Aortic stenosis
+Continuous machinery murmur::Patent ductus arteriosus
+Pansystolic murmur at the apex radiating to the axilla::Mitral regurgitation
+Kussmaul sign::Constrictive pericarditis
+Osler nodes and Janeway lesions::Infective endocarditis
+Jones criteria::Acute rheumatic fever
+Boot-shaped heart on chest X-ray::Tetralogy of Fallot
+Egg-on-side appearance::Transposition of the great arteries
+~Ventricular fibrillation::Immediate defibrillation is needed
+Saddle-shaped ST elevation::Brugada syndrome
+Rib notching on chest X-ray::Coarctation of the aorta
+Raised JVP with Kussmaul sign and clear lungs::Right ventricular infarction or constriction
+Troponin rise with ST elevation::STEMI`],
+['G','{a} is classically associated with:','Which finding is classically associated with {b}?','Davidson, Harrison, Bailey and Love',`Charcot's triad (fever, jaundice, right upper quadrant pain)::Ascending cholangitis
+Painless palpable gallbladder with jaundice::Carcinoma of the head of the pancreas
+Murphy's sign::Acute cholecystitis
+Cullen's sign::Acute haemorrhagic pancreatitis
+Virchow's node::Gastric carcinoma
+Kayser-Fleischer ring::Wilson disease
+Asterixis (liver flap)::Hepatic encephalopathy
+Caput medusae::Portal hypertension
+Spider naevi and palmar erythema::Chronic liver disease
+Skip lesions with cobblestone mucosa::Crohn's disease
+Continuous mucosal inflammation from the rectum::Ulcerative colitis
+Bird's beak sign on barium swallow::Achalasia cardia
+~Barrett's oesophagus::Intestinal metaplasia with adenocarcinoma risk
+Anti-mitochondrial antibody::Primary biliary cholangitis
+Anti-tissue transglutaminase antibody::Coeliac disease
+Raised alpha-fetoprotein::Hepatocellular carcinoma
+Unconjugated hyperbilirubinaemia with normal liver enzymes::Gilbert syndrome
+Pale stool, dark urine and pruritus::Obstructive jaundice
+Positive urea breath test::Helicobacter pylori infection`],
+['M','{a} is classically associated with:','Which finding is classically associated with {b}?','Davidson, Harrison, Kumar and Clark',`Kussmaul breathing::Diabetic ketoacidosis
+Trousseau sign::Hypocalcaemia
+Argyll Robertson pupil::Neurosyphilis
+Kernig sign::Meningeal irritation
+Babinski sign::Upper motor neuron lesion
+Lhermitte sign::Multiple sclerosis
+Positive Romberg test::Sensory ataxia from dorsal column loss
+Tinel sign::Carpal tunnel syndrome
+Pemberton sign::Retrosternal goitre
+Cushing's triad::Raised intracranial pressure
+Whipple's triad::Hypoglycaemia (insulinoma)
+Cheyne-Stokes respiration::Severe heart failure or brainstem lesion
+Bence Jones proteinuria::Multiple myeloma
+Philadelphia chromosome::Chronic myeloid leukaemia
+Reed-Sternberg cells::Hodgkin lymphoma
+Auer rods::Acute myeloid leukaemia
+Smudge cells::Chronic lymphocytic leukaemia
+Teardrop cells::Myelofibrosis
+Howell-Jolly bodies::Hyposplenism
+Hypersegmented neutrophils::Megaloblastic anaemia
+Heinz bodies::G6PD deficiency
+Rheumatoid factor::Rheumatoid arthritis
+Anti-dsDNA antibody::Systemic lupus erythematosus
+Anti-centromere antibody::Limited systemic sclerosis
+c-ANCA::Granulomatosis with polyangiitis
+Heliotrope rash::Dermatomyositis
+Negatively birefringent needle-shaped crystals::Gout
+Positively birefringent rhomboid crystals::Pseudogout
+Pel-Ebstein fever::Hodgkin lymphoma
+Parkinsonian resting tremor::Reduced dopamine in the substantia nigra
+Hemiballismus::Lesion of the subthalamic nucleus
+Charcot's joint::Neuropathic arthropathy (for example diabetes)`],
+['S','{a} is classically associated with:','Which finding is classically associated with {b}?','Bailey and Love, SRB manual of surgery',`Rovsing sign::Acute appendicitis
+Positive Trendelenburg test (varicose veins)::Saphenofemoral junction incompetence
+~Perthes test::Assessing deep vein patency
+Intermittent claudication::Peripheral arterial disease
+Pulsatile abdominal mass::Abdominal aortic aneurysm
+Hippocratic facies::Peritonitis
+Sentinel pile::Anal fissure
+Peau d'orange::Locally advanced breast carcinoma
+~Paget disease of the nipple::Underlying breast carcinoma
+~Cystic hygroma::Brilliantly transilluminant neck swelling in a child
+~Thyroglossal cyst::Moves upward on protruding the tongue
+~Branchial cyst::Anterior border of sternocleidomastoid
+~Ranula::Mucous retention cyst in the floor of the mouth
+~Ludwig angina::Cellulitis of the submandibular space
+~Varicocele::Bag of worms feel in the scrotum
+~Strangulated hernia::Irreducible, tender swelling with no cough impulse
+~Richter hernia::Only part of the bowel wall trapped in the sac
+~Littre hernia::Meckel's diverticulum in the sac
+~Pantaloon hernia::Both direct and indirect components
+~Buerger disease::Young male smoker with distal limb ischaemia
+~Hydrocele::Transilluminant scrotal swelling
+~Courvoisier law::Palpable gallbladder with jaundice is unlikely to be due to stones
+Goitre moving on swallowing::Thyroid origin of a neck swelling
+~Gallstone ileus::Small bowel obstruction with pneumobilia
+Pneumoperitoneum on erect chest X-ray::Hollow viscus perforation
+~Mesenteric ischaemia::Pain out of proportion to abdominal signs`],
+['P','{a} is classically associated with:','Which finding is classically associated with {b}?','Nelson and Ghai essential paediatrics',`Koplik spots::Measles
+Slapped-cheek appearance::Parvovirus B19 infection
+Steeple sign on neck X-ray::Croup
+Thumb sign on lateral neck X-ray::Acute epiglottitis
+Currant-jelly stool::Intussusception
+Olive-shaped epigastric mass with projectile vomiting::Infantile pyloric stenosis
+Double-bubble sign::Duodenal atresia
+Delayed passage of meconium beyond 48 hours::Hirschsprung disease
+Simian crease and sandal gap::Down syndrome
+Webbed neck and short stature in a girl::Turner syndrome
+Tall stature with small testes::Klinefelter syndrome
+Rocker-bottom feet::Edwards syndrome (trisomy 18)
+Cleft lip, polydactyly and microphthalmia::Patau syndrome (trisomy 13)
+Cafe-au-lait spots and neurofibromas::Neurofibromatosis type 1
+Ash-leaf macules and adenoma sebaceum::Tuberous sclerosis
+Infantile spasms with hypsarrhythmia::West syndrome
+Three-per-second spike-and-wave EEG::Absence epilepsy
+Gower sign::Duchenne muscular dystrophy
+White pupillary reflex (leukocoria)::Retinoblastoma
+Ortolani and Barlow tests::Developmental dysplasia of the hip
+Strawberry tongue with prolonged fever and coronary aneurysm risk::Kawasaki disease
+Cherry-red spot at the macula with neurodegeneration::Tay-Sachs disease
+Inspiratory whoop after coughing fits::Pertussis
+~Cri-du-chat::Deletion of the short arm of chromosome 5
+Hepatosplenomegaly with failure to thrive and anaemia::Thalassaemia major`],
+['P','At what age does a typical child achieve: {a}?','Which milestone is typical at {b}?','Nelson and Ghai essential paediatrics',`Social smile::6 weeks
+Steady head control::3 months
+Rolls over::4 to 5 months
+Pincer grasp::9 to 10 months
+Stranger anxiety::8 months
+Walks independently::12 to 15 months
+First meaningful words::12 months
+Two-word phrases::2 years
+Copies a circle::3 years
+Copies a cross::4 years
+Copies a triangle::5 years
+Doubles birth weight::5 months
+Triples birth weight::1 year
+Closure of the posterior fontanelle::2 to 3 months
+Closure of the anterior fontanelle::12 to 18 months
+First tooth erupts::6 months
+Rides a tricycle::3 years
+Hops on one foot::4 years`],
+['O','{a} refers to:','Which term or sign refers to: {b}?','Williams obstetrics and Dutta textbook',`Hegar sign::Softening of the lower uterine segment
+Chadwick sign::Bluish discolouration of the vagina and cervix
+Goodell sign::Softening of the cervix
+Braxton Hicks contractions::Painless irregular contractions in pregnancy
+Quickening::First perception of fetal movements by the mother
+Lightening::Descent of the presenting part before labour
+Show::Blood-stained mucus discharge before labour
+Engagement::Widest part of the presenting part passes through the pelvic brim
+Lochia::Vaginal discharge after delivery
+Crowning::Largest diameter of the head distends the vulva and stays visible
+Moulding::Overlapping of fetal skull bones during labour
+Caput succedaneum::Scalp oedema crossing suture lines
+Cephalhaematoma::Subperiosteal collection that does not cross suture lines
+Gravida::Number of pregnancies irrespective of outcome
+Primary postpartum haemorrhage::Blood loss of 500 mL or more within 24 hours of vaginal delivery
+Menorrhagia::Excessive regular menstrual bleeding
+Metrorrhagia::Irregular bleeding between periods
+Dysmenorrhoea::Painful menstruation
+Menopause::Cessation of menses for 12 months
+Hyperemesis gravidarum::Severe persistent vomiting in pregnancy with weight loss and ketosis
+Placenta praevia::Painless fresh bleeding in late pregnancy
+Abruptio placentae::Painful bleeding with a hard tender uterus
+Pre-eclampsia::New hypertension with proteinuria after 20 weeks
+HELLP syndrome::Haemolysis, elevated liver enzymes and low platelets
+Krukenberg tumour::Ovarian metastasis from a gastric primary
+Meigs syndrome::Ovarian fibroma with ascites and pleural effusion
+Sheehan syndrome::Pituitary necrosis after major postpartum haemorrhage
+Asherman syndrome::Intrauterine adhesions`],
+['O','What is the first-line drug or treatment for {a}?','{b} is first-line for which condition?','Williams obstetrics, RCOG and WHO guidance',`Eclamptic seizures::Magnesium sulphate
+Acute severe hypertension in pregnancy::Intravenous labetalol
+Chronic hypertension in pregnancy::Methyldopa
+Postpartum haemorrhage due to uterine atony::Oxytocin
+Rhesus-negative mother with a rhesus-positive baby::Anti-D immunoglobulin
+Fetal lung maturity before preterm delivery::Antenatal corticosteroids
+Medical termination of early pregnancy::Mifepristone followed by misoprostol
+Emergency contraception::Levonorgestrel
+Ovulation induction in PCOS::Letrozole
+Bacterial vaginosis::Metronidazole
+Unruptured stable ectopic pregnancy::Methotrexate
+Neural tube defect prevention::Folic acid
+Postmenopausal vaginal atrophy::Topical oestrogen
+Vulvovaginal candidiasis::Clotrimazole pessary`],
+['N','{a} is classically associated with:','Which finding is classically associated with {b}?','Dhingra and Logan Turner ENT',`Negative Rinne with Weber lateralised to the affected ear::Conductive deafness
+Positive Rinne with Weber lateralised to the normal ear::Sensorineural deafness
+Quinsy::Peritonsillar abscess
+~Little's area::Commonest site of anterior epistaxis
+Vertigo, tinnitus and fluctuating hearing loss::Meniere disease
+Positive Dix-Hallpike test with brief positional vertigo::Benign paroxysmal positional vertigo
+Unilateral progressive sensorineural deafness with tinnitus::Vestibular schwannoma
+Attic perforation with foul-smelling discharge::Cholesteatoma
+Conductive deafness with Carhart's notch::Otosclerosis
+Adolescent boy with profuse epistaxis and nasal obstruction::Juvenile nasopharyngeal angiofibroma
+Single unilateral nasal polyp::Antrochoanal polyp
+Multiple bilateral nasal polyps::Allergic ethmoidal polyposis
+Hoarseness lasting more than 3 weeks in a smoker::Needs laryngoscopy to exclude carcinoma
+Foreign body inhaled by a child::Right main bronchus is most commonly affected`],
+['E','{a} is classically associated with:','Which finding is classically associated with {b}?','Khurana and Kanski ophthalmology',`Cherry-red spot::Central retinal artery occlusion
+Papilloedema::Raised intracranial pressure
+Cotton-wool spots::Hypertensive or diabetic retinopathy
+Neovascularisation of the retina::Proliferative diabetic retinopathy
+Keratic precipitates::Anterior uveitis
+Dendritic ulcer::Herpes simplex keratitis
+Rubeosis iridis::Neovascular glaucoma
+Optic disc cupping::Glaucoma
+Ptosis, miosis and anhidrosis::Horner syndrome
+Relative afferent pupillary defect::Optic nerve disease
+Chlamydia trachomatis::Trachoma
+~Chalazion::Chronic granuloma of a meibomian gland
+~Hordeolum externum (stye)::Acute infection of the gland of Zeis
+Bitemporal hemianopia::Pituitary tumour compressing the chiasma
+Homonymous hemianopia::Lesion behind the optic chiasma
+Sunflower cataract::Wilson disease
+~Pterygium::Triangular fibrovascular conjunctival growth
+Snowflake cataract::Juvenile diabetes
+Painless sudden loss of vision with a pale retina::Central retinal artery occlusion
+Halos around lights with a hazy cornea and a fixed oval pupil::Acute angle-closure glaucoma`],
+['Y','{a} is best described as:','Which term fits this description: {b}?','Kaplan and Sadock and Oxford handbook of psychiatry',`Hallucination::Perception without an external stimulus
+Delusion::Fixed false belief out of keeping with the person's culture
+Illusion::Misperception of a real stimulus
+Obsession::Recurrent intrusive thought recognised as one's own
+Compulsion::Repetitive act performed to reduce anxiety
+Phobia::Irrational fear with avoidance
+Mania::Elevated mood with reduced need for sleep and grandiosity
+Delirium tremens::Alcohol withdrawal with confusion and visual hallucinations
+Wernicke encephalopathy::Confusion, ataxia and ophthalmoplegia from thiamine deficiency
+Korsakoff syndrome::Anterograde amnesia with confabulation
+Capgras syndrome::Belief that a familiar person has been replaced by an impostor
+Othello syndrome::Delusion of a partner's infidelity
+Cotard syndrome::Nihilistic delusion that one is dead
+Bulimia nervosa::Binge eating with compensatory purging
+Panic attack::Sudden intense fear with palpitations and breathlessness
+Post-traumatic stress disorder::Re-experiencing, avoidance and hyperarousal after trauma
+Tardive dyskinesia::Involuntary orofacial movements after long antipsychotic use
+Neuroleptic malignant syndrome::Fever, rigidity and raised creatine kinase on antipsychotics
+Serotonin syndrome::Hyperthermia, clonus and agitation with serotonergic drugs
+Confabulation::Filling memory gaps with fabricated but sincere accounts
+Thought insertion::First-rank symptom of schizophrenia
+Anhedonia::Loss of interest or pleasure in usual activities
+Akathisia::Inner restlessness after antipsychotic treatment
+Echolalia::Repetition of another person's words`],
+['R','{a} is classically associated with:','Which finding is classically associated with {b}?','Maheshwari and Apley orthopaedics',`Dinner-fork deformity::Colles fracture
+Garden-spade deformity::Smith fracture
+Proximal ulna fracture with radial head dislocation::Monteggia fracture
+Radial shaft fracture with distal radio-ulnar dislocation::Galeazzi fracture
+Anatomical snuffbox tenderness::Scaphoid fracture
+Volkmann's ischaemic contracture::Supracondylar fracture of the humerus
+Shortened, externally rotated limb::Fracture neck of femur
+Shortened, adducted and internally rotated limb::Posterior dislocation of the hip
+Avascular necrosis of the femoral head in a child::Perthes disease
+Obese adolescent with hip or knee pain::Slipped capital femoral epiphysis
+Sunburst appearance and Codman triangle::Osteosarcoma
+Onion-peel periosteal reaction::Ewing sarcoma
+Soap-bubble appearance at the epiphysis::Giant cell tumour
+Night pain relieved by aspirin::Osteoid osteoma
+Raised alkaline phosphatase with normal calcium::Paget disease of bone
+T-score of -2.5 or lower::Osteoporosis
+Pain on passive stretch::Compartment syndrome
+Talipes equinovarus::Club foot (CTEV)
+Lateral epicondylitis::Tennis elbow
+Medial epicondylitis::Golfer's elbow
+Finkelstein test::De Quervain tenosynovitis
+~Metaphysis of long bones in children::Commonest site of acute osteomyelitis`],
+['D','{a} is classically associated with:','Which finding is classically associated with {b}?','IADVL and Rook dermatology',`Wickham's striae::Lichen planus
+Auspitz sign::Psoriasis
+Nikolsky sign::Pemphigus vulgaris
+Burrows in the finger webs::Scabies
+Herald patch::Pityriasis rosea
+Spaghetti-and-meatballs appearance on KOH::Pityriasis versicolor
+Anaesthetic hypopigmented patch::Tuberculoid leprosy
+Pearly papule with rolled edge::Basal cell carcinoma
+Dermatitis herpetiformis::Coeliac disease
+Target lesions::Erythema multiforme
+Vesicles in a dermatomal distribution::Herpes zoster
+Honey-coloured crusts::Impetigo
+Umbilicated pearly papules::Molluscum contagiosum
+Acanthosis nigricans::Insulin resistance
+Nail pitting::Psoriasis
+Exclamation-mark hairs::Alopecia areata
+Subepidermal tense blisters::Bullous pemphigoid
+Tender red nodules on the shins::Erythema nodosum
+Multinucleated giant cells on Tzanck smear::Herpes simplex or zoster
+Depigmented patches from loss of melanocytes::Vitiligo`],
+['U','{a} is classically associated with:','Which finding is classically associated with {b}?','Bailey and Love, SRB, Campbell urology',`Painless gross haematuria::Carcinoma of the bladder
+Loin-to-groin colicky pain::Ureteric stone
+~Commonest renal stone::Calcium oxalate
+Staghorn calculus::Struvite stone from Proteus infection
+Alpha-blocker first-line::Benign prostatic hyperplasia
+Inability to retract the foreskin::Phimosis
+Retracted foreskin that cannot be returned::Paraphimosis
+Urethral meatus on the ventral surface::Hypospadias
+Urethral meatus on the dorsal surface::Epispadias
+Absent testis in the scrotum::Cryptorchidism
+Acute scrotal pain with a high-riding testis::Testicular torsion
+Radiosensitive testicular tumour::Seminoma
+Poor urinary stream in a boy with bilateral hydronephrosis::Posterior urethral valves
+Pain at the end of micturition relieved by lying down::Bladder stone
+Blood at the external meatus after pelvic trauma::Urethral injury
+Haematuria, loin pain and a palpable mass::Renal cell carcinoma
+Necrotising fasciitis of the perineum::Fournier gangrene
+Raised PSA::Possible prostate cancer`],
+['B','{a} is classically associated with:','Which finding is classically associated with {b}?','ATLS and American Burn Association',`Painful, blanching, dry burn without blisters::Superficial (first-degree) burn
+Painful, moist burn with blisters::Superficial partial-thickness burn
+Painless, leathery, white or charred burn::Full-thickness burn
+Singed nasal hair and carbonaceous sputum::Inhalation injury
+Curling ulcer::Duodenal ulcer after severe burns
+Silver sulfadiazine::Topical burn dressing
+Parkland formula::Fluid resuscitation in burns
+Escharotomy::Circumferential full-thickness burn restricting circulation or ventilation`],
+['F','Which vector transmits {a}?','{b} is the vector of which disease?','Park textbook of preventive and social medicine',`Dengue::Aedes aegypti mosquito
+Malaria::Female Anopheles mosquito
+Lymphatic filariasis::Culex mosquito
+Kala-azar::Sandfly (Phlebotomus argentipes)
+Plague::Rat flea (Xenopsylla cheopis)
+Epidemic typhus::Human body louse
+Scrub typhus::Trombiculid mite
+Japanese encephalitis::Culex tritaeniorhynchus
+Diarrhoeal diseases (mechanical transfer)::Housefly
+Scabies::Sarcoptes scabiei mite
+Chikungunya::Aedes mosquito
+Zika virus infection::Aedes mosquito (also sexual transmission)`],
+['F','{a} is classically associated with:','Which finding is classically associated with {b}?','Reddy and Parikh forensic medicine and toxicology',`~Rigor mortis onset::2 to 6 hours after death
+Cadaveric spasm::Instantaneous rigidity at the moment of death
+~Hypostasis (post-mortem lividity)::Fixed after about 6 to 8 hours
+Green discolouration of the right iliac fossa::First external sign of putrefaction
+Adipocere::Grave wax formation in moist conditions
+Mummification::Dry heat, drying of the body
+Cherry-red post-mortem lividity::Carbon monoxide poisoning
+Chocolate-brown lividity::Aniline or nitrite poisoning
+Garlic odour::Organophosphate or phosphorus poisoning
+Bitter almond odour::Cyanide poisoning
+Mees lines on nails::Arsenic poisoning
+Burtonian line on gums::Chronic lead poisoning
+Ligature mark that is oblique and incomplete::Hanging
+Horizontal, complete ligature mark::Strangulation
+Tardieu spots::Asphyxial deaths
+Lichtenberg figures::Lightning strike
+Contact wound with muzzle imprint::Close-range firearm discharge`]
+];
+
 /* ---------- hourly engine: a different line every hour, a long gap before any repeat ---------- */
 const slotN=()=>Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/36e5);
 const gcd=(a,b)=>b?gcd(b,a%b):a;
@@ -1005,9 +1674,9 @@ const U=(a,m)=>a[(seedN()*m+Math.floor(today()/DAY)*5+hr()*3)%a.length];
 let lastM='';const pick=a=>{let x;do{x=a[Math.floor(Math.random()*a.length)]}while(x==lastM&&a.length>1);lastM=x;return x};
 function pickA(a,key){let i=Math.floor(Math.random()*a.length),l=+(ls('lp_'+key)||-1);if(a.length>1&&i==l)i=(i+1)%a.length;ls('lp_'+key,String(i));return a[i]}
 /* ---------- score, streak and app-open tracking ---------- */
-const LV=[[0,'Fresher','🌱'],[40,'Curious Mind','🔍'],[120,'Ward Wanderer','🚶'],[250,'Clerking Pro','🩺'],[450,'Rounds Regular','📋'],[700,'Registrar in Training','⭐'],[1000,'Rounds Master','🏅'],[1500,'Future Consultant','🎓'],[2200,'F-31 Legend','👑']];
+const LV=[[0,'Fresher','🌱'],[30,'Curious Cadet','🔍'],[80,'Anatomy Explorer','🦴'],[150,'Stethoscope Starter','🩺'],[250,'Ward Wanderer','🚶'],[380,'Clerking Champ','📋'],[550,'History Hunter','🕵️'],[750,'Exam Warrior','⚔️'],[1000,'Viva Voyager','🎤'],[1300,'Rounds Regular','🏥'],[1650,'Diagnosis Detective','🔬'],[2050,'Registrar in Training','⭐'],[2500,'Night-Duty Ninja','🥷'],[3000,'Rounds Master','🏅'],[3600,'Clinical Sage','📚'],[4300,'Consultant in the Making','🎓'],[5100,'Chamber Champion','💼'],[6000,'Professor Vibes','🧑‍🏫'],[7000,'Medical Maestro','🎼'],[8200,'Legend of F-31','👑'],[10000,'Hall of Fame','🏆']];
 const xp=()=>+(ls('xp')||0),spent=()=>+(ls('xps')||0),bal=()=>xp()-spent(),UNL=()=>jl('unl');
-const addXP=n=>ls('xp',String(xp()+n));
+const addXP=n=>{const a=lvl().i;ls('xp',String(xp()+n));const b=lvl();if(b.i>a)setTimeout(()=>say('🎉','Level up! '+b.em+' '+b.name,'Level '+(b.i+1)+' unlocked. Keep going, doctor!'),700)};
 function lvl(){const x=xp();let i=0;LV.forEach((l,k)=>{if(x>=l[0])i=k});const nx=LV[i+1];return{i,name:LV[i][1],em:LV[i][2],x,next:nx?nx[0]:null,pct:nx?Math.min(100,(x-LV[i][0])/(nx[0]-LV[i][0])*100):100}}
 function streakOf(A,skipFri){const S=new Set(A);let d=today(),n=0;if(!S.has(ymd(d)))d=new Date(d.getFullYear(),d.getMonth(),d.getDate()-1);for(let i=0;i<400;i++){if(skipFri&&d.getDay()==5){}else if(S.has(ymd(d)))n++;else break;d=new Date(d.getFullYear(),d.getMonth(),d.getDate()-1)}return n}
 function bestStreak(A){const L=[...new Set(A)].sort();let best=0,run=0,prev=null;L.forEach(k=>{const d=new Date(k+'T00:00');if(prev){const gp=Math.round((d-prev)/DAY),fr=gp==2&&new Date(+prev+DAY).getDay()==5;run=(gp==1||fr)?run+1:1}else run=1;prev=d;if(run>best)best=run});return best}
@@ -1081,8 +1750,8 @@ function parseTxt(t){const N=[],S={},D={},C=[],SKY='sgt|sun|exam|apk|apklink|con
   const dm=F.match(/^day\s*:\s*(\d{4}-\d{2}-\d{2})/i);
   if(dm){const A=D[dm[1]]=D[dm[1]]||[];L.slice(1).forEach(l=>{let m=l.match(/^\s*(lecture|integrated|seminar|ward|sgt|note)(?:\s+([A-Fa-f,\s]+?))?\s*:\s*(.+)$/i);
     if(m){A.push({k:m[1].toLowerCase(),g:(m[2]||'').toUpperCase().replace(/[^A-F]/g,''),v:m[3].trim()});return}
-    m=l.match(/^\s*cancel\s+(lecture|integrated|seminar|ward|sgt|event|all)(?:\s+([A-Fa-f,\s]+?))?\s*(?::\s*(.*))?$/i);
-    if(m){A.push({k:'cancel',t:m[1].toLowerCase(),g:(m[2]||'').toUpperCase().replace(/[^A-F]/g,''),v:(m[3]||'').trim(),raw:l.trim()});return}
+    m=l.match(/^\s*(cancel|done)\s+(lecture|integrated|seminar|ward|sgt|event|all)(?:\s+([A-Fa-f,\s]+?))?\s*(?::\s*(.*))?$/i);
+    if(m){A.push({k:m[1].toLowerCase(),t:m[2].toLowerCase(),g:(m[3]||'').toUpperCase().replace(/[^A-F]/g,''),v:(m[4]||'').trim(),raw:l.trim()});return}
     m=l.match(/^\s*event\s+(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*\|\s*([^|]+?)\s*(?:\|\s*([^|]*?)\s*)?(?:\|\s*([A-Fa-f,\s]*))?$/i);
     if(m)A.push({k:'event',a:+m[1]*60+ +m[2],b:+m[3]*60+ +m[4],t:m[5].trim(),v:(m[6]||'').trim(),g:(m[7]||'').toUpperCase().replace(/[^A-F]/g,''),raw:l.trim()})});continue}
   let d='',x=null,xs='',cat='General',ts=0;const body=L.slice(1).filter(l=>{let m=l.match(/^date\s*:\s*(.+)/i);if(m){d=m[1].trim();return false}
@@ -1130,7 +1799,7 @@ function addDayLine(t,date,line){const p=blocks(t);for(let i=0;i<p.length;i+=2){
 function rmLine(t,raw){const L=t.split('\n'),i=L.findIndex(x=>x.trim()===raw);if(i<0)throw new Error('409');L.splice(i,1);return L.join('\n')}
 const nblock=n=>(n.p?'*':'')+n.t+'\ncategory: '+n.cat+'\nposted: '+n.posted+(n.xs?'\nexpires: '+n.xs:'')+(n.b?'\n'+n.b:'');
 const pstamp=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())};
-function cancelList(){const o=[],t0=today();Object.keys(st.days||{}).sort().forEach(k=>{if(new Date(k+'T23:59:59')<t0)return;st.days[k].filter(y=>y.k=='cancel').forEach(y=>o.push({date:k,...y}))});return o}
+function cancelList(kind){kind=kind||'cancel';const o=[],t0=today();Object.keys(st.days||{}).sort().forEach(k=>{if(new Date(k+'T23:59:59')<t0)return;st.days[k].filter(y=>y.k==kind).forEach(y=>o.push({date:k,...y}))});return o}
 
 const QZ={
 C:[["Which ECG pattern is most typical of acute pericarditis?",["Pathological Q waves in leads V1 to V4","Diffuse concave ST elevation with PR depression","ST elevation only in V1 to V3 with a right bundle branch block","A delta wave with a short PR interval"],1,"Pericarditis typically causes widespread saddle-shaped ST elevation with PR depression. STEMI causes territorial ST elevation.","ESC pericardial diseases guideline, 2015"],
@@ -1224,6 +1893,7 @@ async function fetchNotices(){const c=GH();let t='';
  return t}
 async function loadRemote(manual){if(st.hold&&Date.now()<st.hold)return true;if(!ONL){st.lerr=1;return false}st.lerr=0;
  try{if(location.protocol=='file:'&&!BASE())throw 0;const t=await fetchNotices();ls('nc',t);ls('nct',String(Date.now()));applyTxt(t)}catch(e){st.lerr=1}
+ try{await loadMats()}catch(e){}
  const a=document.activeElement;if(manual||!a||!/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))render();return!st.lerr}
 function setKV(t,k,v){const L=t.split('\n'),re=new RegExp('^'+k+':');let end=L.findIndex(l=>/^-{3,}\s*$/.test(l));if(end<0)end=L.length;for(let i=0;i<end;i++)if(re.test(L[i])){L[i]=k+': '+v;return L.join('\n')}L.splice(end,0,k+': '+v);return L.join('\n')}
 /* ---------- quiz ---------- */
@@ -1251,7 +1921,7 @@ function blkCard(){const t=today(),B=evs(g).filter(e=>e.k=='b'),cur=B.find(e=>e.
  else if(nx){const d=Math.round((nx.s-t)/DAY);top=`<b style="font-size:1.25em">Starts ${d==1?'tomorrow':'in '+d+' days'}</b><span>First posting: ${subj(nx.t)} ${esc(nx.t)} · ${rng(nx)}</span>`}
  else top='<b>Block posting is complete</b><span>Well done. Keep revising for the Final Professional.</span>';
  const tl=BSL.map(s=>{const nw=cur&&!off&&m>=s[0]&&m<s[1];return `<div class="${nw?'nw':''}"><em>${s[2]}</em><div style="display:block;background:none;padding:0"><b>${s[3]}</b><small>${s[4]}</small></div><span class=tt2>${f12(s[0])} – ${f12(s[1])}${nw?'<br>NOW':''}</span></div>`}).join('');
- return `<div class="card blk"><div class=bk>Block posting · top priority</div>${top}<div class=tl>${tl}</div><small>${cur&&off?'Today is a day off (Friday or holiday). ':''}Get your logbook signed after each ward round.</small></div>`}
+ return `<div class="card blk"><div class=bk>Block posting</div>${top}<div class=tl>${tl}</div><small>${cur&&off?'Today is a day off (Friday or holiday). ':''}Get your logbook signed after each ward round.</small></div>`}
 /* ---------- hello, goals, attendance, score ---------- */
 function hello(){const nm=nick(),r=+ls('r'),n=new Date(),m=n.getHours()*60+n.getMinutes(),t=today(),B=evs(g).some(e=>e.k=='b'&&e.s<=t&&t<=e.e),off=!slotsFor(n).length,gr=m<720?'Good morning':m<1020?'Good afternoon':'Good evening',
  line=B&&!off?U(G_BLOCK,3):off?U(G_OFF,3):(m<1080?U(G_CLASS,5):U(G_EVE,5)),L=lvl(),s=ostreak();
@@ -1300,6 +1970,73 @@ function vLearn(){const t=today(),cur=evs(g).filter(e=>e.s<=t&&t<=e.e),
  +pr+sec('Did you know?')+fcard('Fact',FX[dI('fx',3)%FX.length],'fx','Source',1)+sec('Study smarter')+fcard('Study fact',TIPS[dI('sf',5)%TIPS.length],'sf','Evidence',1)+sec('Psychology')+fcard('Proven psychological fact',PSY[dI('pf',7)%PSY.length],'pf','Source',1)
  +sec('Explore more')+`<div class=tiles><button class=tile data-sub=dz data-go=more><span class=ti>📚</span><b>All disease cards</b><small>${DZA.length} cards in More</small></button><button class=tile data-lt=opd><span class=ti>🩺</span><b>OPD guide</b><small>${OPD.length} common problems</small></button></div>`}
 
+/* ---------- question bank generator: 1000+ subject-wise questions ---------- */
+Object.assign(PN,{X:'Pharmacology',W:'Microbiology',A:'Anatomy',H:'Biochemistry',F:'Forensic and PSM'});
+const QEM={X:'💊',W:'🦠',A:'🦴',H:'🧬',F:'⚖️'},qem=k=>QEM[k]||subj(PN[k])||'🧠';
+(function(){const g2=(a,b)=>b?g2(b,a%b):a;
+ QBANKS.forEach(B=>{const k=B[0],fw=B[1],rv=B[2],src=B[3],P=B[4].trim().split('\n').map(l=>l.split('::').map(x=>x.trim())).filter(p=>p.length==2&&p[0]&&p[1]).map(p=>p[0][0]=='~'?[p[0].slice(1),p[1],1]:[p[0],p[1],0]),n=P.length,cA={},cB={};
+  QZ[k]=QZ[k]||[];P.forEach(p=>{cA[p[0]]=(cA[p[0]]||0)+1;cB[p[1]]=(cB[p[1]]||0)+1});
+  const opts=(pool,ans,i)=>{const o=[ans];let s=5+(i%7);while(g2(n,s)!=1)s++;for(let t=1;o.length<4&&t<=n*2;t++){const c=pool[(i+t*s)%n];if(c&&!o.includes(c))o.push(c)}return o.length==4?o:null};
+  P.forEach((p,i)=>{if(cA[p[0]]!=1)return;const o=opts(P.map(x=>x[1]),p[1],i);if(o)QZ[k].push([fw.replace('{a}',p[0]),o,0,p[0]+': '+p[1]+'.',src]);
+   if(!p[2]&&cB[p[1]]==1){const o2=opts(P.map(x=>x[0]),p[0],i+3);if(o2)QZ[k].push([rv.replace('{b}',p[1]),o2,0,p[1]+' ↔ '+p[0]+'.',src])}})})})();
+const qTotal=()=>Object.keys(QZ).reduce((a,k)=>a+QZ[k].length,0);
+let qpk=false;
+function qdept(){const K=Object.keys(QZ).filter(k=>QZ[k].length);if(qsub!='auto'&&QZ[qsub])return qsub;const t=today(),ck=evs(g).filter(e=>e.s<=t&&t<=e.e).map(x=>pk2(x.t.replace('Medicine ward · ',''))).find(y=>y&&QZ[y]&&QZ[y].length),m=+(ls('qn_all')||0);if(ck&&m%3!=2)return ck;return K[(seedN()*3+m*7+Math.floor(t/DAY))%K.length]}
+function qinit(){const k=qdept();if(qz.k!=k||qz.i<0){const n=+(ls('qn_'+k)||0),L=QZ[k].length,s0=cop(L,Math.floor(L*.38)+3),o=(seedN()*53+Math.floor(today()/DAY)*17)%L,i=(o+n*s0)%L;qz={k,i,sel:-1,msg:'',P:perm(seedN()*31+i*7+n)}}}
+function quizCard(){qinit();const q=QZ[qz.k][qz.i],s=qsc(),a=qz.sel>=0,ci=qz.P.indexOf(q[2]),ok=qz.sel==ci,K=Object.keys(QZ).filter(k=>QZ[k].length);
+ const pk=qpk?`<div class=pkg>${[['auto','🎯','Auto (my class)']].concat(K.map(k=>[k,qem(k),PN[k]])).map(x=>`<button class="pk${qsub==x[0]?' on':''}" data-qs=${x[0]}><span>${x[1]}</span>${esc(x[2])}</button>`).join('')}</div>`:'';
+ return `<div class=card><div class=tt><b>🧠 Quiz</b><button class=link data-qpk=1 style="margin-left:auto">${qem(qz.k)} ${esc(PN[qz.k])} ▾</button></div>${pk}<b>${esc(q[0])}</b>${qz.P.map((o,i)=>`<button class="opt${a?(i==ci?' right':i==qz.sel?' wrong':' dim'):''}" data-qa="${i}">${'ABCD'[i]}. ${esc(q[1][o])}</button>`).join('')}${a?`<div class="res ${ok?'good':'bad'}"><b>${esc(qz.msg)}${ok?' +10 XP':' +2 XP'}</b>${ok?'':'<span>The correct answer is '+'ABCD'[ci]+'. '+esc(q[1][q[2]])+'.</span>'}<span>${esc(q[3])}</span><small>Source: ${esc(q[4])}</small></div><button class=act data-qn="1">Next question</button>`:''}<small>Score: ${s.r} of ${s.t} correct · ${qTotal().toLocaleString()} questions in ${K.length} subjects</small></div>`}
+/* ---------- compact blocks for the home page ---------- */
+function blkMini(){const t=today(),B=evs(g).filter(e=>e.k=='b'),cur=B.find(e=>e.s<=t&&t<=e.e),nx=B.find(e=>e.s>t),n=new Date(),m=n.getHours()*60+n.getMinutes(),off=!wk0(t);let l1='';
+ if(cur){const tot=wdays(cur),dn=Math.min(tot,wto(cur,t));l1=`<b>${subj(cur.t)||'🏥'} ${esc(cur.t)}</b><span>Day ${dn} of ${tot} · ${rng(cur)}</span><div class=bar><i style="width:${dn/tot*100}%"></i></div>`}
+ else if(nx){const d=Math.round((nx.s-t)/DAY);l1=`<b>Starts ${d==1?'tomorrow':'in '+d+' days'}</b><span>${subj(nx.t)} ${esc(nx.t)} · ${rng(nx)}</span>`}else l1='<b>Block posting is complete</b>';
+ return `<div class="card blk mini"><div class=bk>🏥 Block posting</div>${l1}<div class=bgrid>${BSL.map(s=>{const nw=cur&&!off&&m>=s[0]&&m<s[1];return `<div class="${nw?'nw':''}"><b>${s[2]} ${s[3]}</b><small>${f12(s[0])} – ${f12(s[1])}</small>${s[4]&&s[3]!='Break'?`<small>${s[4]}</small>`:''}</div>`}).join('')}</div></div>`}
+function examCard(c){const p=cdParts(),done=exT()<new Date(),st0=new Date(2026,10,1),pc=Math.max(0,Math.min(100,(Date.now()-st0)/(exT()-st0)*100)),line=done?'The exam period is on. Best of luck, doctor!':EXL.find(x=>p.d<=x[0])[1];
+ return `<div class="card exh${c?' mini':''}"><div class=k>🎓 Final Professional MBBS · ${exDate()}</div>${c?'':`<h3>${done?'The exam period is on':'The countdown has begun'}</h3>`}<div class=cdb><div><b data-cd=d>${p.d}</b><small>Days</small></div><div><b data-cd=h>${pad(p.h)}</b><small>Hours</small></div><div><b data-cd=m>${pad(p.m)}</b><small>Min</small></div><div><b data-cd=s>${pad(p.s)}</b><small>Sec</small></div></div><div class=bar><i style="width:${pc}%"></i></div><div class=ex2><span>🗓 ${Math.floor(p.d/7)} weeks ${p.d%7} days to go</span></div>${c?'':`<div class=msg>${esc(line)}</div>`}</div>`}
+function scoreMini(){const L=lvl(),s=ostreak(),k=ymd(today()),q=jl('qdays').includes(k),r=ls('dd')==k;
+ return `<div class="card score mini"><div class=sc1><span class=lvl style="width:44px;height:44px;font-size:22px;border-radius:15px">${L.em}</span><div style="flex:1"><b>${L.name}</b><div class=bar><i style="width:${L.pct}%"></i></div><small>Level ${L.i+1} · ${L.next?(L.next-L.x)+' XP to the next level':'Top level'}</small></div><div style="text-align:right"><b><span class=fl2>🔥</span> ${s}</b><small>⭐ ${bal()} XP</small></div></div><div class=gchips><span class="gc ok">✓ Routine</span><button class="gc${q?' ok':''}" data-go=learn>${q?'✓':'○'} Quiz</button><button class="gc${r?' ok':''}" data-go=learn>${r?'✓':'○'} Disease of the day</button></div></div>`}
+function quoteMini(){const q=hp(QUOTES,13,37),j=hp(HUMOR,7,41,5);return `<div class="card qc"><span class=qh>Quote of the hour</span><span class=qt>“${esc(q[0])}”</span><small>${esc(q[1])}</small><div class=lmi>😄 ${esc(j)}</div></div>`}
+function hello(){const nm=nick(),r=+ls('r'),n=new Date(),m=n.getHours()*60+n.getMinutes(),gr=m<720?'Good morning':m<1020?'Good afternoon':'Good evening',L=lvl(),s=ostreak();
+ return `<div class="card hello slim"><b>${gr}${nm?', '+esc(nm):''}!</b><div class=tags><span class=tg>${r?rid(r)+' · ':''}Group ${g}</span><span class=tg>${L.em} ${L.name}</span><span class=tg>🔥 ${s}</span><span class=tg>⭐ ${bal()} XP</span></div></div>`}
+function vToday(){const t=today(),E=evs(g),cur=E.filter(e=>e.s<=t&&t<=e.e),nx=E.find(e=>e.s>t),tm=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1),inB=cur.some(e=>e.k=='b');
+ let h=offB()+upd()+hello()+pin()+liveCard()+(inB?blkMini():'')+dayNote(t,'today')+sec('Today’s classes')+vDay(new Date(),1)+(inB?'':blkMini());
+ if(!inB)h+=cur.map(e=>{const n=Math.round((e.e-e.s)/DAY)+1,i=Math.round((t-e.s)/DAY)+1,l=n-i;return `<div class="card hero"><div class=tt>${ico(e.t,'ward')}<div class=rt><b>${esc(e.t)}</b><span>${rng(e)} · day ${i} of ${n}${l?' · '+l+(l>1?' days':' day')+' left':' · last day'}</span></div></div><div class=bar><i style="width:${i/n*100}%"></i></div></div>`}).join('');
+ h+=attCard()+quoteMini()+examCard(1)+scoreMini()+det('tm','Tomorrow’s schedule',dayNote(tm,'tomorrow')+vDay(tm,0));
+ if(nx&&!inB){const n=Math.round((nx.s-t)/DAY);h+=`<div class=card><small>Up next · ${n==1?'starts tomorrow':'in '+n+' days'}</small><div class=tt>${ico(nx.t,'ward')}<div class=rt><b>${esc(nx.t)}</b><span>${rng(nx)}</span></div></div><a href="${cal(nx)}" target=_blank rel=noopener>Add to calendar</a></div>`}
+ return h}
+/* ---------- learn: compact rows ---------- */
+function lrow(id,e,title,prev,body){return `<details id=${id}${OPEN[id]?' open':''} class=lr><summary><span class=le>${e}</span><div class=rt><b>${title}</b><span>${esc(prev)}</span></div></summary><div class=inner>${body}</div></details>`}
+const fbody=(e,k,l)=>`<span class=tx>${esc(e[0])}</span><small>${l}: ${esc(e[1])}</small><div><button class=link data-fx="${k}">Another</button></div>`;
+const short=(s,n)=>s.length>n?s.slice(0,n-1)+'…':s;
+function vLearn(){const t=today(),cur=evs(g).filter(e=>e.s<=t&&t<=e.e),
+ tabs=`<div class=tabs>${[['daily','📚 Daily'],['opd','🩺 OPD guide'],['mat','📎 Material']].map(x=>`<button class="chip${lt==x[0]?' on':''}" data-lt=${x[0]}>${x[1]}</button>`).join('')}</div>`;
+ if(lt=='opd')return tabs+`<div class=card><input id=oq type=search placeholder="Search: fever, cough, epistaxis…" value="${esc(oq)}" autocomplete=off><small>Quick approach, red flags and first-line management for common OPD and chamber cases.</small></div><div id=ores>${opdList(oq)}</div><div class="hint op"><span class=dis>Educational summary for students. Always check the BNF or your local protocol, and the patient’s allergies, pregnancy and kidney or liver function.</span></div>`;
+ if(lt=='mat')return tabs+vMat();
+ const z=DZA[(seedN()*3+Math.floor(t/DAY))%DZA.length],rd=ls('dd')==ymd(t),pk=Object.keys(PL),kk=cur.map(e=>pk2(e.t.replace('Medicine ward · ',''))).find(y=>y&&PL[y])||pk[(Math.floor(t/DAY)+seedN())%pk.length],pa=PL[kk],pt=pa[(Math.floor(t/DAY)*3+seedN())%pa.length],
+ F=FX[dI('fx',3)%FX.length],T=TIPS[dI('sf',5)%TIPS.length],Y=PSY[dI('pf',7)%PSY.length];
+ return tabs+quizCard()+sec('Today for you')+
+ lrow('l1','🩺','Disease of the day',z.n,`<div class=dz><b class=dzt>${z.e} ${esc(z.n)}</b><small>${esc(z.s)}</small>${dzBody(z)}</div><button class=link data-rd="1">${rd?'Marked as read ✓':'Mark as read (+5 XP)'}</button>`)
+ +lrow('l2',subj(PN[kk])||'💡','Clinical pearl',PN[kk],`<span class=tx>${esc(pt)}</span><small>${subj(PN[kk])} ${PN[kk]} · Based on: ${esc(PS[kk])}</small>`)
+ +lrow('l3','✨','Did you know?',short(F[0],70),fbody(F,'fx','Source'))
+ +lrow('l4','🎯','Study smarter',short(T[0],70),fbody(T,'sf','Evidence'))
+ +lrow('l5','🧠','Mind & behaviour',short(Y[0],70),fbody(Y,'pf','Source'))
+ +sec('Explore')+`<div class=mini3><button class=tile data-sub=dz data-go=more><span class=ti>📚</span><b>Disease cards</b></button><button class=tile data-sub=mat data-go=more><span class=ti>📎</span><b>Study material</b></button><button class=tile data-sub=msg data-go=more><span class=ti>💬</span><b>Message admin</b></button></div>`}
+/* ---------- study material ---------- */
+try{st.mats=JSON.parse(ls('matj')||'[]')}catch(e){st.mats=[]}
+async function loadMats(){const c=GH();let t='';if(c&&ONL&&Date.now()>(st.apiBad||0)){try{const r=await fetch('https://api.github.com/repos/'+c.o+'/'+c.r+'/contents/materials.json',{cache:'no-store',headers:{Accept:'application/vnd.github.raw+json'}});if(r.status==200)t=await r.text();else if(r.status==403||r.status==429)st.apiBad=Date.now()+6e5}catch(e){}}
+ if(!t){try{const r=await fetch((BASE()||'')+'materials.json?v='+Date.now(),{cache:'no-store'});if(r.ok)t=await r.text()}catch(e){}}
+ if(t){try{const j=JSON.parse(t);if(Array.isArray(j)){st.mats=j;ls('matj',t)}}catch(e){}}}
+const matUrl=f=>(BASE()||'')+f.split('/').map(encodeURIComponent).join('/');
+const fsz=z=>z>=1048576?(z/1048576).toFixed(1)+' MB':Math.max(1,Math.round(z/1024))+' KB';
+const mIc=n=>/\.pdf$/i.test(n)?'📕':/\.docx?$/i.test(n)?'📘':/\.pptx?$/i.test(n)?'📙':/\.xlsx?$/i.test(n)?'📗':/\.(png|jpe?g|webp)$/i.test(n)?'🖼️':'📄';
+function matList(q){q=(q||'').toLowerCase();const M=(st.mats||[]).filter(m=>!q||(m.t+' '+(m.s||'')+' '+m.n).toLowerCase().includes(q));return M.length?`<div class=list>${M.map(m=>`<div class=row><span class=st style="--c1:#5a86d6;--c2:#3d63b0">${mIc(m.n)}</span><div class=rt><b>${esc(m.t)}</b><span>${m.s?esc(m.s)+' · ':''}${fsz(m.z||0)} · ${fd(new Date(m.ts))}</span></div><a class=btn href="${esc(matUrl(m.f))}" target=_blank rel=noopener>Open</a></div>`).join('')}</div>`:'<div class=card><b>No material yet</b><span>Lecture notes, PDFs and documents shared by the admin will appear here.</span></div>'}
+function vMat(){return `<div class=card><input id=mq type=search placeholder="Search notes by title or subject" autocomplete=off><small>Lecture notes, PDFs and documents shared by the admin. Files open in your browser or PDF viewer.</small></div><div id=mres>${matList('')}</div>`}
+/* ---------- message the admin ---------- */
+function admNum(){const c=st.contact||'',m=c.match(/wa\.me\/(\d+)/);let n=m?m[1]:c.replace(/\D/g,'');if(/^01\d{9}$/.test(n))n='88'+n;if(!/^8801\d{9}$/.test(n))n='8801628298251';return n}
+function vMsg(){const r=+ls('r');return subHead('Message the admin')+`<div class=card><b>Send a message</b><span>Ask about a class, report a problem, or suggest an improvement. It opens WhatsApp or SMS with your message ready to send to Md Miftahul Islam.</span><select id=mt><option>Question about class or routine</option><option>Report a problem in the app</option><option>Suggestion or idea</option><option>Notice or material request</option></select><textarea id=mb rows=5 placeholder="Write your message here"></textarea><small>Your ${r?'roll ('+rid(r)+'), ':''}group ${g||'-'} and name are added automatically.</small><div class=btns style="display:flex;gap:8px;margin-top:6px"><button class=act id=wam style="flex:1">💬 WhatsApp</button><button class=act id=smm style="flex:1;background:var(--as);color:var(--ac)">✉️ SMS</button></div><small id=mm></small></div>`}
+function msgText(){const r=+ls('r'),b=($('#mb')||{}).value||'',t=($('#mt')||{}).value||'';return b.trim()?`FELO 31 · ${r?rid(r)+' · ':''}Group ${g||'-'}${nick()?' · '+nick():''}\n[${t}]\n${b.trim()}`:''}
+function doneList(){return cancelList('done')}
+
 /* ---------- clinical calculators (pure functions, easy to test) ---------- */
 const Calc={
  bmi(kg,cm){const m=cm/100,b=kg/(m*m);return{b,who:b<18.5?'Underweight':b<25?'Normal weight':b<30?'Overweight':b<35?'Obese class I':b<40?'Obese class II':'Obese class III',asia:b<18.5?'Underweight':b<23?'Normal weight':b<27.5?'Overweight (increased risk)':'Obese (high risk)'}},
@@ -1346,7 +2083,7 @@ let pk='';
 function push(){try{const B=window.AndroidBridge;if(!B||!g)return;const k=g+'|'+JSON.stringify(st.days||{}).length+'|'+st.sgt+'|'+today().getTime()+'|'+['cl','mo','ev'].map(x=>rmOn(x)+rmT(x,'')).join();if(k==pk)return;pk=k;
  const now=Date.now(),t0=today(),L=[],hm=s=>+s.slice(0,2)*60+ +s.slice(2);
  for(let i=0;i<7;i++){const d=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+i),S=slotsFor(d).filter(s=>!/lunch|Break/.test(s.t));
-  if(rmOn('cl'))S.forEach(s=>{const t=+d+s.a*6e4-6e5;if(t>now&&!s.canc)L.push({t,h:s.t,b:'Starts in 10 min'+(s.n?' · '+s.n:'')})});
+  if(rmOn('cl'))S.forEach(s=>{const t=+d+s.a*6e4-6e5;if(t>now&&!s.canc&&!s.done)L.push({t,h:s.t,b:'Starts in 10 min'+(s.n?' · '+s.n:'')})});
   if(rmOn('mo')&&S.length){const t=+d+hm(rmT('mo','0715'))*6e4;if(t>now)L.push({t,h:'FELO 31 · Today',b:S.slice(0,4).map(s=>f12(s.a)+' '+s.t+(s.canc?' (cancelled)':'')).join(' · ')})}
   if(rmOn('ev')){const t=+d+hm(rmT('ev','2100'))*6e4;if(t>now){const q=QE[(seedN()*13+Math.floor(+d/DAY)*5)%QE.length];L.push({t,h:'Time for tonight’s revision',b:'“'+q[0]+'” — '+q[1]})}}}
  evs(g).forEach(e=>{const t=+e.s-4*36e5;if(t>now&&t<now+14*DAY)L.push({t,h:'Starts tomorrow',b:e.t})});
@@ -1380,21 +2117,23 @@ function vSet(){const th=ls('theme')||'auto',fs=ls('fs')||'m',wm=+(ls('warm')||0
  +sec('Reminders')+`<div class=chips style="padding:0;flex-wrap:wrap">${tb('cl','Class reminders')}${tb('mo','Morning summary')}${tb('ev','Evening study')}</div><small class=hint>Morning summary time</small><div class=chips style="padding:0;flex-wrap:wrap">${tc('mo','0700','7:00 am')}${tc('mo','0715','7:15 am')}${tc('mo','0730','7:30 am')}</div><small class=hint>Evening study time</small><div class=chips style="padding:0;flex-wrap:wrap">${tc('ev','2030','8:30 pm')}${tc('ev','2100','9:00 pm')}${tc('ev','2130','9:30 pm')}${tc('ev','2200','10:00 pm')}</div><small class=hint>Reminders are sent by the Android app. Open the app at least once a week to refresh them.</small>`
  +sec('Your data')+`<div class=card><span>Your roll, attendance, score and quiz results stay on this phone only.</span><button class=link id=cl>Clear my data</button><button class=link id=rf>Refresh now</button><small id=rm></small></div>`}
 function vAbout(){return subHead('About')+`<div class="card about"><div class=bigl>${LOGO}</div><b class=ab1>FELO 31</b><small>F-31 Student Companion</small><small>Version ${PV}${VER()?' · build '+VER():''}</small><div class=bylab>Built, engineered &amp; designed by</div><button class=byname id=bynm style="background:none;border:0;font-family:inherit">Md Miftahul Islam</button><span>Md. Miftahul Islam · F31172 · Faridpur Medical College</span><small>Concept, engineering, design and content of FELO 31</small></div><div class=card><b>About this app</b><span>A daily companion for the final-year MBBS students of F-31: routine, block posting, notices, quizzes, OPD guide, disease cards, clinical tools and career guidance in one light app.</span></div><div class=card><b>Privacy and security</b><span>The app asks only for internet access, network status, notifications and boot completion (to restore reminders). It has no ads, no trackers and no location, contacts or storage access. The student directory is encrypted and opens only with the batch code. Only the verified admin can change notices.</span></div><div class=card><b>Clinical content</b><span>Quizzes, disease cards, the OPD guide and calculators are educational summaries from the sources listed. They do not replace guidelines or clinical judgement.</span></div>`}
+function upCard(){const M=st.mats||[];return `<div class=card><b>📎 Upload lecture note, PDF or document</b><small>PDF, Word, PowerPoint, Excel, image or text up to 20 MB. Students open it from Learn → Material.</small><input id=ut placeholder="Title, for example Cardiology lecture 3"><input id=us placeholder="Subject (optional)"><input id=uf type=file accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.png,.jpg,.jpeg"><button class=act id=aup>Upload</button></div>`+(M.length?`<div class=card><b>Uploaded files</b>${M.map((m,i)=>`<div class=gl><span>${mIc(m.n)} ${esc(m.t)} · ${fsz(m.z||0)}</span><button class="link dng" data-mdel="${i}">Delete</button></div>`).join('')}</div>`:'')}
 function vAdmin(){let h=subHead('Admin');
  if(!GH())return h+'<div class=card><span>Admin tools work only when the app uses a GitHub Pages website.</span></div>';
  if(!isAdm())return h+`<div class=card><b>Admin login</b><span>Paste your GitHub access token. It stays on this device only. Only the authorised admin account (Md Miftahul Islam) can sign in.</span><input id=tk type=password autocomplete=off placeholder="GitHub token"><button class=act id=tl>Log in</button><small id=am></small></div>`;
- const tp=['Lecture','Integrated teaching','Seminar','Ward','SGT','All classes'],tv=['lecture','integrated','seminar','ward','sgt','all'],cl=cancelList();
- return h+`<div class=card><b>⚡ Cancel a class now</b><small>Students see CANCELLED within seconds when they open or reopen the app.</small><div class=nb><button class=link data-qc=0>Today</button><button class=link data-qc=1>Tomorrow</button></div><input id=cd type=date><select id=ct>${tv.map((v,i)=>`<option value="${v}">${tp[i]}</option>`).join('')}</select><input id=cg placeholder="Groups (optional), for example AB"><input id=cr placeholder="Reason (optional)"><button class=act id=acan>Mark as cancelled</button><small id=am></small></div>`
+ const tp=['Lecture','Integrated teaching','Seminar','Ward','SGT','All classes'],tv=['lecture','integrated','seminar','ward','sgt','all'],cl=cancelList(),dl=doneList();
+ return h+`<div class=card><b>⚡ Cancel a class now</b><small>Students see CANCELLED within seconds when they open or reopen the app.</small><div class=nb><button class=link data-qc=0>Today</button><button class=link data-qc=1>Tomorrow</button></div><input id=cd type=date><select id=ct>${tv.map((v,i)=>`<option value="${v}">${tp[i]}</option>`).join('')}</select><input id=cg placeholder="Groups (optional), for example AB"><input id=cr placeholder="Reason (optional)"><button class=act id=acan>Mark as cancelled</button><button class=act id=adone style="background:var(--as);color:var(--ac);margin-top:6px">✓ Mark class finished early</button><small>Use ‘finished early’ when a class ends before its scheduled time. Students see DONE and the live timer stops.</small><small id=am></small></div>`
  +(cl.length?`<div class=card><b>Active cancellations</b>${cl.map((c,i)=>`<div class=gl><span>${c.date} · ${esc(c.t)}${c.g?' · '+c.g:''}${c.v?' · '+esc(c.v):''}</span><button class=link data-rc="${i}">Restore</button></div>`).join('')}</div>`:'')
- +`<div class=card><b>Add a class</b><small>Tutorial, practical, case presentation and more.</small><input id=ed type=date><input id=es type=time><input id=ee type=time><select id=et>${['Tutorial','Practical','Case presentation','Seminar','Lecture','Viva','Exam'].map(x=>`<option>${x}</option>`).join('')}</select><input id=eo placeholder="Topic"><input id=eg placeholder="Groups (optional)"><button class=act id=aev>Add class</button></div>`
+ +(dl.length?`<div class=card><b>Classes marked finished</b>${dl.map((c,i)=>`<div class=gl><span>${c.date} · ${esc(c.t)}${c.g?' · '+c.g:''}${c.v?' · '+esc(c.v):''}</span><button class=link data-rd2="${i}">Undo</button></div>`).join('')}</div>`:'')+upCard()+`<div class=card><b>Add a class</b><small>Tutorial, practical, case presentation and more.</small><input id=ed type=date><input id=es type=time><input id=ee type=time><select id=et>${['Tutorial','Practical','Case presentation','Seminar','Lecture','Viva','Exam'].map(x=>`<option>${x}</option>`).join('')}</select><input id=eo placeholder="Topic"><input id=eg placeholder="Groups (optional)"><button class=act id=aev>Add class</button></div>`
  +`<div class=card><b>Daily details</b><small>Topics, places and notes for a day.</small><input id=dd type=date><input id=dg placeholder="Groups for ward and SGT (optional)"><input id=dl placeholder="Lecture topic"><input id=di placeholder="Integrated teaching topic"><input id=dw placeholder="Ward: department, floor"><input id=ds placeholder="SGT: department, floor"><input id=dn placeholder="Note for the day"><button class=act id=dpub>Save daily details</button></div>`
  +`<div class=card><b>App settings</b><small>Final Professional start date, first SGT day, admin contact</small><input id=sx type=date value="${esc(EXAM())}"><input id=sg type=date value="${esc(st.sgt||'')}"><input id=sc placeholder="WhatsApp link or mobile" value="${esc(st.contact||'')}"><button class=act id=aset>Save settings</button></div>`
  +`<div class=card><b>Edit the whole file</b><button class=link id=fl>Load notices.txt</button><textarea id=fe rows=10 placeholder="Tap Load first"></textarea><button class=act id=fs>Save file</button><button class=link id=lo>Log out</button></div>`}
 function vMore(){if(sub=='dir')return vDir();if(sub=='tools')return subHead('Clinical tools')+vTools();if(sub=='career')return vCareer();if(sub=='set')return vSet();if(sub=='about')return vAbout();if(sub=='adm')return vAdmin();
+ if(sub=='mat')return subHead('Study material')+vMat();if(sub=='msg')return vMsg();
  if(sub=='dz')return subHead('All disease cards')+`<div class=card><input id=zq type=search placeholder="Search diseases" autocomplete=off><small>${DZA.length} cards · tap a card to open</small></div><div id=zres>${dzList('')}</div>`;
- return `<div class=tiles>${tile('dir','👥','Directory','Roll or name to contact')}${tile('dz','📚','Disease cards',DZA.length+' cards')}${tile('opd','🩺','OPD guide',OPD.length+' common problems','')}${tile('tools','🧮','Clinical tools','Calculators and ranges')}${tile('career','🌍','Career hub','After MBBS roadmaps')}${tile('set','⚙️','Settings','Themes and eye comfort')}${tile('about','ℹ️','About','FELO 31')}${isAdm()&&GH()?tile('adm','🔒','Admin','Classes and notices'):''}</div>`+sec('Final Professional')+examCard()+sec('Your score')+scoreCard()+sec('Attendance')+attSummary()+sec('Contacts')+((st.contacts||[]).length?`<div class=list>${st.contacts.map(c=>`<div class=row><div class=rt><b>${esc(c.n)}</b><span>${esc(c.r)}</span></div>${c.p?`<a href="tel:${esc(c.p.replace(/[^+\d]/g,''))}">${esc(c.p)}</a>`:''}</div>`).join('')}</div>`:'<div class=card><span>No contacts added yet.</span></div>')+`<div class=card><span>Invite your batchmates to use FELO 31.</span><button class=act id=shapp>Share this app</button></div>`}
+ return `<div class=tiles>${tile('dir','👥','Directory','Roll or name to contact')}${tile('dz','📚','Disease cards',DZA.length+' cards')}${tile('opd','🩺','OPD guide',OPD.length+' common problems','')}${tile('mat','📎','Study material',(st.mats||[]).length+' files')}${tile('msg','💬','Message admin','Ask or report')}${tile('tools','🧮','Clinical tools','Calculators and ranges')}${tile('career','🌍','Career hub','After MBBS roadmaps')}${tile('set','⚙️','Settings','Themes and eye comfort')}${tile('about','ℹ️','About','FELO 31')}${isAdm()&&GH()?tile('adm','🔒','Admin','Classes and notices'):''}</div>`+sec('Final Professional')+examCard()+sec('Your score')+scoreCard()+sec('Attendance')+attSummary()+sec('Contacts')+((st.contacts||[]).length?`<div class=list>${st.contacts.map(c=>`<div class=row><div class=rt><b>${esc(c.n)}</b><span>${esc(c.r)}</span></div>${c.p?`<a href="tel:${esc(c.p.replace(/[^+\d]/g,''))}">${esc(c.p)}</a>`:''}</div>`).join('')}</div>`:'<div class=card><span>No contacts added yet.</span></div>')+`<div class=card><span>Invite your batchmates to use FELO 31.</span><button class=act id=shapp>Share this app</button></div>`}
 function shareTxt(t){try{const B=window.AndroidBridge;if(B&&B.share){B.share(t);return}}catch(e){}try{if(navigator.share){navigator.share({text:t}).catch(()=>{});return}}catch(e){}window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}
-const BN={'Today':'আজ','Schedule':'রুটিন','Notices':'নোটিশ','More':'আরও','Learn':'শেখা','Daily':'দৈনিক','Days':'দিন','Hours':'ঘণ্টা','Min':'মিনিট','Sec':'সেকেন্ড','FELO 31':'FELO 31','F-31 Student Companion':'F-31 স্টুডেন্ট কম্প্যানিয়ন','Block posting · top priority':'ব্লক পোস্টিং · সর্বোচ্চ অগ্রাধিকার','You are offline':'তুমি অফলাইনে আছো','Quote of the hour':'ঘণ্টার উক্তি','Light moment':'একটু হাসি','Your score':'তোমার স্কোর','Classes are over for today':'আজকের ক্লাস শেষ','Next class':'পরের ক্লাস','Today’s schedule':'আজকের রুটিন','Tomorrow’s schedule':'আগামীকালের রুটিন','Up next':'এরপর যা আছে','Add to calendar':'ক্যালেন্ডারে যোগ করো','Friday is a holiday':'শুক্রবার ছুটির দিন','Nothing is scheduled':'কিছু নির্ধারিত নেই','Show my classes':'আমার ক্লাস দেখাও','Welcome, F-31!':'স্বাগতম, F-31!','Or choose your group':'অথবা তোমার গ্রুপ বেছে নাও','Enter your roll number to see today’s classes and where they are.':'আজকের ক্লাস কোথায় হবে জানতে তোমার রোল নম্বর লেখো।','← Back':'← ফিরে যাও','No notices yet':'এখনো কোনো নোটিশ নেই','Share':'শেয়ার করো','Delete':'মুছে ফেলো','Attendance':'উপস্থিতি','Contacts':'যোগাযোগ','Share this app':'অ্যাপটি শেয়ার করো','Not marked yet':'এখনো উপস্থিতি দেওয়া হয়নি','Start your streak today':'আজই নতুন ধারা শুরু করো','Undo':'বাতিল করো','Quiz':'কুইজ','Did you know?':'তুমি কি জানো?','Study smarter':'বুদ্ধি করে পড়ো','Psychology':'মনোবিজ্ঞান','Another':'আরেকটি','Disease of the day':'আজকের রোগ','Clinical pearl':'ক্লিনিক্যাল পার্ল','Explore more':'আরও দেখো','Main causes':'প্রধান কারণ','Advice':'পরামর্শ','Directory':'ডিরেক্টরি','Disease cards':'রোগের কার্ড','OPD guide':'ওপিডি গাইড','Clinical tools':'ক্লিনিক্যাল টুলস','Career hub':'ক্যারিয়ার হাব','Settings':'সেটিংস','About':'পরিচিতি','Admin':'অ্যাডমিন','Appearance':'চেহারা','Eye comfort':'চোখের আরাম','Reminders':'রিমাইন্ডার','Your data':'তোমার ডেটা','Daily goals':'দৈনিক লক্ষ্য','Student directory':'শিক্ষার্থী ডিরেক্টরি','Built by':'নির্মাতা','Refresh now':'এখনই রিফ্রেশ করো','Clear my data':'আমার ডেটা মুছে ফেলো','Next question':'পরের প্রশ্ন','Got it':'বুঝেছি','Open':'খুলুন','NEW':'নতুন','CANCELLED':'বাতিল','Done':'শেষ','Now':'চলছে','Auto':'অটো','Final Professional':'ফাইনাল প্রফেশনাল','Final Professional MBBS':'ফাইনাল প্রফেশনাল MBBS','All block postings · Dec 2026 – Feb 2027':'সব ব্লক পোস্টিং · ডিসেম্বর ২০২৬ – ফেব্রুয়ারি ২০২৭','Medicine ward · November 2026':'মেডিসিন ওয়ার্ড · নভেম্বর ২০২৬','Weekly timetable (November)':'সাপ্তাহিক রুটিন (নভেম্বর)','For this hour':'এই ঘণ্টার জন্য','All disease cards':'সব রোগের কার্ড','Locked':'লক করা'};
+const BN={'Today':'আজ','Schedule':'রুটিন','Notices':'নোটিশ','More':'আরও','Learn':'শেখা','Daily':'দৈনিক','Days':'দিন','Hours':'ঘণ্টা','Min':'মিনিট','Sec':'সেকেন্ড','FELO 31':'FELO 31','F-31 Student Companion':'F-31 স্টুডেন্ট কম্প্যানিয়ন','Block posting':'ব্লক পোস্টিং','Today’s classes':'আজকের ক্লাস','Today for you':'আজ তোমার জন্য','Explore':'আরও দেখো','Study material':'স্টাডি ম্যাটেরিয়াল','Message admin':'অ্যাডমিনকে মেসেজ','Mind & behaviour':'মন ও আচরণ','You are offline':'তুমি অফলাইনে আছো','Quote of the hour':'ঘণ্টার উক্তি','Light moment':'একটু হাসি','Your score':'তোমার স্কোর','Classes are over for today':'আজকের ক্লাস শেষ','Next class':'পরের ক্লাস','Today’s schedule':'আজকের রুটিন','Tomorrow’s schedule':'আগামীকালের রুটিন','Up next':'এরপর যা আছে','Add to calendar':'ক্যালেন্ডারে যোগ করো','Friday is a holiday':'শুক্রবার ছুটির দিন','Nothing is scheduled':'কিছু নির্ধারিত নেই','Show my classes':'আমার ক্লাস দেখাও','Welcome, F-31!':'স্বাগতম, F-31!','Or choose your group':'অথবা তোমার গ্রুপ বেছে নাও','Enter your roll number to see today’s classes and where they are.':'আজকের ক্লাস কোথায় হবে জানতে তোমার রোল নম্বর লেখো।','← Back':'← ফিরে যাও','No notices yet':'এখনো কোনো নোটিশ নেই','Share':'শেয়ার করো','Delete':'মুছে ফেলো','Attendance':'উপস্থিতি','Contacts':'যোগাযোগ','Share this app':'অ্যাপটি শেয়ার করো','Not marked yet':'এখনো উপস্থিতি দেওয়া হয়নি','Start your streak today':'আজই নতুন ধারা শুরু করো','Undo':'বাতিল করো','Quiz':'কুইজ','Did you know?':'তুমি কি জানো?','Study smarter':'বুদ্ধি করে পড়ো','Psychology':'মনোবিজ্ঞান','Another':'আরেকটি','Disease of the day':'আজকের রোগ','Clinical pearl':'ক্লিনিক্যাল পার্ল','Explore more':'আরও দেখো','Main causes':'প্রধান কারণ','Advice':'পরামর্শ','Directory':'ডিরেক্টরি','Disease cards':'রোগের কার্ড','OPD guide':'ওপিডি গাইড','Clinical tools':'ক্লিনিক্যাল টুলস','Career hub':'ক্যারিয়ার হাব','Settings':'সেটিংস','About':'পরিচিতি','Admin':'অ্যাডমিন','Appearance':'চেহারা','Eye comfort':'চোখের আরাম','Reminders':'রিমাইন্ডার','Your data':'তোমার ডেটা','Daily goals':'দৈনিক লক্ষ্য','Student directory':'শিক্ষার্থী ডিরেক্টরি','Built by':'নির্মাতা','Refresh now':'এখনই রিফ্রেশ করো','Clear my data':'আমার ডেটা মুছে ফেলো','Next question':'পরের প্রশ্ন','Got it':'বুঝেছি','Open':'খুলুন','NEW':'নতুন','CANCELLED':'বাতিল','Done':'শেষ','Now':'চলছে','Auto':'অটো','Final Professional':'ফাইনাল প্রফেশনাল','Final Professional MBBS':'ফাইনাল প্রফেশনাল MBBS','All block postings · Dec 2026 – Feb 2027':'সব ব্লক পোস্টিং · ডিসেম্বর ২০২৬ – ফেব্রুয়ারি ২০২৭','Medicine ward · November 2026':'মেডিসিন ওয়ার্ড · নভেম্বর ২০২৬','Weekly timetable (November)':'সাপ্তাহিক রুটিন (নভেম্বর)','For this hour':'এই ঘণ্টার জন্য','All disease cards':'সব রোগের কার্ড','Locked':'লক করা'};
 const BR=[[/(\d+) min left/,'$1 মিনিট বাকি'],[/Next: (.+?) at (\d+:\d+)/,'পরের ক্লাস: $1, $2 টায়'],[/Starts at (\S+), in (\d+) min/,'$1 টায় শুরু, $2 মিনিট পরে'],[/Day (\d+) of (\d+) · (\d+) days? left/,'দিন $1/$2 · $3 দিন বাকি'],[/Day (\d+) of (\d+) · last day/,'দিন $1/$2 · শেষ দিন'],[/^In (\d+) days$/,'$1 দিন পরে'],[/Faridpur Medical College/,'ফরিদপুর মেডিকেল কলেজ'],[/ · Group /,' · গ্রুপ '],[/LIVE NOW · /,'এখন চলছে · '],[/^Good morning/,'শুভ সকাল'],[/^Good afternoon/,'শুভ দুপুর'],[/^Good evening/,'শুভ সন্ধ্যা'],[/Score: (\d+) of (\d+) correct/,'স্কোর: $2 টির মধ্যে $1 টি সঠিক'],[/^Source: /,'সূত্র: '],[/^Evidence: /,'প্রমাণ: '],[/^Based on: /,'ভিত্তি: '],[/(\d+) of 3 done/,'৩-এর মধ্যে $1 সম্পন্ন'],[/(\d+) weeks (\d+) days to go/,'$1 সপ্তাহ $2 দিন বাকি'],[/May start (.+)/,'শুরু হতে পারে $1'],[/(\d+) days present this month/,'এই মাসে $1 দিন উপস্থিত'],[/(\d+)-day streak/,'টানা $1 দিনের ধারা'],[/XP to the next level/,'XP পরের লেভেলে'],[/^Level (\d+)/,'লেভেল $1']];
 function bn(h){return h.replace(/>([^<>]+)</g,(m,t)=>{const x=BN[t];if(x!=null)return'>'+x+'<';let y=t;for(const [a,b] of BR)y=y.replace(a,b);return y===t?m:'>'+y+'<'})}
 const NAV=[['today','Today','home'],['schedule','Schedule','cal'],['learn','Learn','learn'],['notices','Notices','bell'],['more','More','more']];
@@ -1419,7 +2158,21 @@ $('#app').onclick=async e=>{const b=e.target.closest('button');if(!b)return;cons
   if(d.na=='del'){if(d.c!='1'){d.c='1';b.textContent='Tap again to delete';return}await A(async()=>{const f=await ghGet(),nt=delBlock(f.txt,n.raw);await ghPut(nt,f.sha,'Delete notice');applyTxt(nt)},'Deleted.');return}
   if(d.na=='pin'){await A(async()=>{const f=await ghGet(),nt=replBlock(f.txt,n.raw,nblock({...n,p:!n.p,posted:n.ts?pstamp(new Date(n.ts)):pstamp()}));await ghPut(nt,f.sha,n.p?'Unpin notice':'Pin notice');applyTxt(nt)},n.p?'Unpinned.':'Pinned.');return}}
  if('qc' in d){const t0=today(),x=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+ +d.qc);$('#cd').value=ymd(x);return}
- if(b.id=='acan'){await doCancel(A);return}
+if(b.id=='acan'){await doCancel(A);return}
+ if(b.id=='adone'){const dd=$('#cd').value;if(!dd){am('Choose a date first.');return}const gs=$('#cg').value.toUpperCase().replace(/[^A-F]/g,''),r=$('#cr').value.trim(),line='done '+$('#ct').value+(gs?' '+gs:'')+(r?': '+r:'');await A(async()=>{const f=await ghGet(),nt=addDayLine(f.txt,dd,line);await ghPut(nt,f.sha,'Class finished');applyTxt(nt)},'Marked as finished. Students see DONE within seconds of opening the app.');return}
+ if('rd2' in d){const c=doneList()[+d.rd2];if(!c)return;await A(async()=>{const f=await ghGet(),nt=rmLine(f.txt,c.raw);await ghPut(nt,f.sha,'Undo finished');applyTxt(nt)},'Restored.');return}
+ if(b.id=='aup'){const f=($('#uf').files||[])[0],t=$('#ut').value.trim();if(!f){am('Choose a file first.');return}if(!t){am('Add a title first.');return}if(f.size>20971520){am('The file is larger than 20 MB.');return}am('Uploading…');
+  await A(async()=>{const c=GH(),buf=new Uint8Array(await f.arrayBuffer());let bin='';for(let i=0;i<buf.length;i+=8192)bin+=String.fromCharCode.apply(null,buf.subarray(i,i+8192));
+   const safe=f.name.replace(/[^A-Za-z0-9._-]+/g,'_'),path='files/'+Date.now().toString(36)+'-'+safe,base='/repos/'+c.o+'/'+c.r+'/contents/';
+   await ghApi(base+path,tok(),'PUT',{message:'Upload material',content:btoa(bin)});
+   let arr=[],sha;try{const j=await ghApi(base+'materials.json',tok());sha=j.sha;arr=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(j.content.replace(/\s/g,'')),ch=>ch.charCodeAt(0))))}catch(e){if(String(e.message)!='404')throw e}
+   arr.unshift({t,s:$('#us').value.trim(),f:path,n:f.name,z:f.size,ts:Date.now()});
+   const body={message:'Update materials',content:enc(JSON.stringify(arr,null,1))};if(sha)body.sha=sha;await ghApi(base+'materials.json',tok(),'PUT',body);st.mats=arr;ls('matj',JSON.stringify(arr))},'Uploaded. Students can open it within a minute or two.');return}
+ if('mdel' in d){const m=(st.mats||[])[+d.mdel];if(!m)return;if(d.c!='1'){d.c='1';b.textContent='Tap again to delete';return}
+  await A(async()=>{const c=GH(),base='/repos/'+c.o+'/'+c.r+'/contents/';try{const fj=await ghApi(base+m.f,tok());await ghApi(base+m.f,tok(),'DELETE',{message:'Delete material',sha:fj.sha})}catch(e){if(String(e.message)!='404')throw e}
+   const j=await ghApi(base+'materials.json',tok()),arr=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(j.content.replace(/\s/g,'')),ch=>ch.charCodeAt(0))));const na=arr.filter(x=>x.f!=m.f);await ghApi(base+'materials.json',tok(),'PUT',{message:'Update materials',content:enc(JSON.stringify(na,null,1)),sha:j.sha});st.mats=na;ls('matj',JSON.stringify(na))},'Deleted.');return}
+ if(b.id=='wam'||b.id=='smm'){const t=msgText();if(!t){const x=$('#mm');if(x)x.textContent='Write your message first.';return}const n=admNum();window.open(b.id=='wam'?'https://wa.me/'+n+'?text='+encodeURIComponent(t):'sms:+'+n+'?body='+encodeURIComponent(t),'_blank');return}
+ if('qpk' in d){qpk=!qpk;render();return}
  if('rc' in d){const c=cancelList()[+d.rc];if(!c)return;await A(async()=>{const f=await ghGet(),nt=rmLine(f.txt,c.raw);await ghPut(nt,f.sha,'Restore class');applyTxt(nt)},'Restored.');return}
  if(b.id=='aev'){const dd=$('#ed').value,s=$('#es').value,en=$('#ee').value;if(!dd||!s||!en){am('Choose the date, start time and end time.');return}const gs=$('#eg').value.toUpperCase().replace(/[^A-F]/g,''),line='event '+s+'-'+en+' | '+$('#et').value+' | '+$('#eo').value.trim()+(gs?' | '+gs:'');await A(async()=>{const f=await ghGet(),nt=addDayLine(f.txt,dd,line);await ghPut(nt,f.sha,'Add class');applyTxt(nt)},'Class added.');return}
  if(b.id=='dpub'){const dd=$('#dd').value;if(!dd){am('Choose a date first.');return}const gs=$('#dg').value.toUpperCase().replace(/[^A-F]/g,''),P=gs?' '+gs:'',L=[];[['dl','lecture',''],['di','integrated',''],['dw','ward',P],['ds','sgt',P],['dn','note','']].forEach(a=>{const v=$('#'+a[0]).value.trim();if(v)L.push(a[1]+a[2]+': '+v)});if(!L.length){am('Fill in at least one field.');return}await A(async()=>{let f=await ghGet(),nt=f.txt;L.forEach(l=>{nt=addDayLine(nt,dd,l)});await ghPut(nt,f.sha,'Add daily details');applyTxt(nt)},'Saved.');return}
@@ -1428,11 +2181,11 @@ $('#app').onclick=async e=>{const b=e.target.closest('button');if(!b)return;cons
  if(b.id=='shapp'){shareTxt('FELO 31 · F-31 Student Companion: class routine, block posting, notices, quizzes, OPD guide and clinical tools for FMC F-31.'+(SITE()?'\n'+SITE():''));return}
  if('sh' in d){const n=sorted()[+d.sh];if(n)shareTxt(n.t+'\n'+n.b);return}
  if(b.id=='bynm'){adTap++;if(adTap>=5){adTap=0;if(GH()){sub='adm';tab='more';render()}else say('🔒','Admin tools work only on the GitHub Pages version of the app.')}return}
- if(b.id=='cl'){if(d.c!='1'){d.c='1';b.textContent='Tap again to confirm';return}['g','r','att','seen','lang','gh','adm','theme','qs','fx','sf','pf','occ','qdays','dd','bc','nc','nct','xp','xps','unl','opens','odays','xpa','fs','warm','den','rmo'].forEach(k=>{try{localStorage.removeItem(k)}catch(x){}});g='';lang='en';home=false;tab='today';sub='';DIR=null;DIRM={};qz={k:'',i:-1,sel:-1,msg:'',P:[0,1,2,3]}}
+ if(b.id=='cl'){if(d.c!='1'){d.c='1';b.textContent='Tap again to confirm';return}['g','r','att','seen','lang','gh','adm','theme','qs','fx','sf','pf','occ','qdays','dd','bc','nc','nct','xp','xps','unl','qn_all','matj','opens','odays','xpa','fs','warm','den','rmo'].forEach(k=>{try{localStorage.removeItem(k)}catch(x){}});g='';lang='en';home=false;tab='today';sub='';DIR=null;DIRM={};qz={k:'',i:-1,sel:-1,msg:'',P:[0,1,2,3]}}
  else if('qa' in d){qinit();if(qz.sel>=0)return;const q=QZ[qz.k][qz.i],i=+d.qa,s=qsc(),ci=qz.P.indexOf(q[2]);qz.sel=i;s.t++;if(i==ci)s.r++;ls('qs',JSON.stringify(s));addXP(i==ci?10:2);const k=ymd(today()),a=jl('qdays');if(!a.includes(k)){a.push(k);ls('qdays',JSON.stringify(a.slice(-90)))}qz.msg=i==ci?pick(COMP):pick(WRONGM)}
- else if('qn' in d){const n=+(ls('qn_'+qz.k)||0);ls('qn_'+qz.k,String(n+1));qz.i=-1}
+ else if('qn' in d){const n=+(ls('qn_'+qz.k)||0);ls('qn_'+qz.k,String(n+1));ls('qn_all',String(+(ls('qn_all')||0)+1));qz.i=-1;qpk=false}
  else if('ul' in d){const p=d.ul.split(':'),k=p[0],i=+p[1],c=LK[k];if(!c||bal()<c||UNL().includes(k+i))return;ls('xps',String(spent()+c));const u=UNL();u.push(k+i);ls('unl',JSON.stringify(u));say('🔓',lang=='bn'?'আনলক হয়েছে! চালিয়ে যাও।':'Unlocked! Enjoy, doctor.','-'+c+' XP · balance '+bal()+' XP');OPEN[(k=='cr'?'cr':k=='opd'?'op':'dz')+i]=true}
- else if('qs' in d){qsub=d.qs;qz.i=-1}
+ else if('qs' in d){qsub=d.qs;qz.i=-1;qpk=false}
  else if('fx' in d){ls(d.fx,String(+(ls(d.fx)||0)+1))}
  else if('rd' in d){if(ls('dd')!=ymd(today())){ls('dd',ymd(today()));addXP(5)}}
  else if('lt' in d){lt=d.lt;tab='learn';sub='';home=false}
@@ -1459,7 +2212,7 @@ $('#app').onclick=async e=>{const b=e.target.closest('button');if(!b)return;cons
  render()};
 $('#toast').onclick=e=>{if(e.target.closest('#tclose'))$('#toast').classList.remove('on')};
 try{$('#app').addEventListener('toggle',e=>{const t=e.target;if(t.id){OPEN[t.id]=t.open;if(t.open&&t.id.slice(0,3)=='tl_')calcTool(t.id.slice(3))}},true)}catch(e){}
-try{['input','change'].forEach(ev=>$('#app').addEventListener(ev,e=>{const t=e.target;if(t.id=='dq'){const r=$('#dres');if(r)r.innerHTML=dirRes(t.value);return}if(t.id=='oq'){oq=t.value;const r=$('#ores');if(r)r.innerHTML=opdList(oq);return}if(t.id=='zq'){const r=$('#zres');if(r)r.innerHTML=dzList(t.value);return}const w=t.closest&&t.closest('[data-tool]');if(w)calcTool(w.dataset.tool)}))}catch(e){}
+try{['input','change'].forEach(ev=>$('#app').addEventListener(ev,e=>{const t=e.target;if(t.id=='dq'){const r=$('#dres');if(r)r.innerHTML=dirRes(t.value);return}if(t.id=='oq'){oq=t.value;const r=$('#ores');if(r)r.innerHTML=opdList(oq);return}if(t.id=='mq'){const r=$('#mres');if(r)r.innerHTML=matList(t.value);return}if(t.id=='zq'){const r=$('#zres');if(r)r.innerHTML=dzList(t.value);return}const w=t.closest&&t.closest('[data-tool]');if(w)calcTool(w.dataset.tool)}))}catch(e){}
 /* ---------- boot ---------- */
 {const c0=ls('nc');if(c0)applyTxt(c0,+ls('nct')||0);if(ls('seen')==null&&st.notices.length)ls('seen',JSON.stringify(st.notices.map(n=>n.i)))}
 applyTheme();render();openToast();loadRemote();

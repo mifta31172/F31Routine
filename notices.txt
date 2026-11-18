@@ -17,6 +17,7 @@
 #   ward: department, floor      sgt: department, floor      note: a message for the day
 #   cancel lecture: reason       (types: lecture, integrated, seminar, ward, sgt, event, all)
 #   cancel sgt AB: reason        (group letters after the type limit it to those groups)
+#   done lecture: note           (class finished early; students see DONE. Same types and group letters as cancel)
 #   event 14:00-15:00 | Tutorial | Topic | AB     (24-hour time; the last part, the groups, is optional)
 #
 # NOTICE (the first line is the title; start it with * to pin it)
@@ -33,8 +34,12 @@ contact:
 apk:
 apklink:
 ---
-day: 2026-11-18
-cancel lecture: No lecture at 8am
-integrated: Surgery Departmental Integrated teaching  Topic : Proptosis FP: Dr. Nazma mam
-integrated: Surgery Departmental Integrated teaching  Topic : Proptosis FP: Dr. Nazma mam
-cancel integrated: DIT is over for today
+Lecture schedule update
+category: Academic
+posted: 2026-11-13 20:00
+Tomorrow’s lecture schedule
+
+📌11:00 AM - 2:30 PM
+Integrated teaching
+Topic : AUB
+FP: Jasmine Mam
