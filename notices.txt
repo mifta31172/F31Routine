@@ -37,3 +37,4 @@ day: 2026-11-18
 cancel lecture: No lecture at 8am
 integrated: Surgery Departmental Integrated teaching  Topic : Proptosis FP: Dr. Nazma mam
 integrated: Surgery Departmental Integrated teaching  Topic : Proptosis FP: Dr. Nazma mam
+cancel integrated: DIT is over for today
