@@ -33,3 +33,13 @@ exam: 2027-05-02
 contact:
 apk:
 apklink:
+---
+Lecture schedule update
+category: Academic
+posted: 2026-11-13 20:00
+Tomorrow’s lecture schedule
+
+📌11:00 AM - 2:30 PM
+Integrated teaching
+Topic : AUB
+FP: Jasmine Mam
