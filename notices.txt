@@ -38,13 +38,3 @@ cancel lecture: No lecture at 8am
 cancel lecture: No lecture at 8am
 integrated: Surgery Departmental Integrated teaching  Topic : Proptosis FP: Dr. Nazma mam
 integrated: Surgery Departmental Integrated teaching  Topic : Proptosis FP: Dr. Nazma mam
----
-Lecture schedule update
-category: Academic
-posted: 2026-11-13 20:00
-Tomorrow’s lecture schedule
-
-📌11:00 AM - 2:30 PM
-Integrated teaching
-Topic : AUB
-FP: Jasmine Mam
