@@ -33,6 +33,9 @@ contact:
 apk:
 apklink:
 ---
+day: 2026-11-18
+cancel lecture: No lecture at 8am
+---
 Lecture schedule update
 category: Academic
 posted: 2026-11-13 20:00
