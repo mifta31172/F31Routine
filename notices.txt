@@ -36,4 +36,3 @@ apklink:
 ---
 day: 2026-11-19
 cancel lecture
-done ward ABEA
