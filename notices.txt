@@ -37,4 +37,3 @@ apklink:
 day: 2026-11-19
 cancel lecture
 ward ACE: Male ward,3rd floor
-ward ACE: Male ward,3rd floor
