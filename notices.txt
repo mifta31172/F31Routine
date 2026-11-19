@@ -37,4 +37,3 @@ apklink:
 day: 2026-11-19
 cancel lecture
 done all
-done all
