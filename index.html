@@ -232,6 +232,8 @@ nav button.on svg{transform:translateY(-1px) scale(1.08)}nav button svg{transiti
 .prof{display:flex;align-items:center;gap:7px;padding:3px 10px 3px 3px;border-radius:22px;border:1px solid var(--bd);background:var(--as);color:var(--tx);font:inherit;max-width:158px}
 .prof:active{transform:scale(.96)}.pav{width:28px;height:28px;border-radius:50%;background:linear-gradient(145deg,var(--g1),var(--g2));color:var(--on);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9em;flex:none}
 .pt{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;min-width:0}.pt b{font-size:.8em;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pt small{font-size:.66em;color:var(--mu);font-weight:700;letter-spacing:.02em}
+
+.hello .link{align-self:flex-start;margin-top:6px;color:var(--on);border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.12)}
 </style></head>
 <body>
 <div id="splash"></div>
@@ -1749,6 +1751,35 @@ const SCEN=[
 ["A 7-year-old has frequent staring spells of 10 seconds with an EEG showing 3 Hz spike-and-wave discharges. What is a first-line drug?","Ethosuximide",["Carbamazepine","Phenytoin","Vigabatrin"],"This is childhood absence epilepsy. Ethosuximide or valproate are first-line.","Paediatrics"]
 ];
 
+/* ===== reminder quotes related to the class or subject ===== */
+const RQ={
+'Internal Medicine':['A careful history solves more cases than any test.','Examine every system, even when you think you know the answer.','Common things are common. Think of the zebra only after the horse.'],
+'Paediatrics':['Children are not small adults. Check the weight before any dose.','Watch the child before you touch the child.','The mother’s worry is a clinical sign too.'],
+'Surgery':['Know the anatomy first. The best incision is the one you planned.','Examine the whole abdomen and the groins, every time.','Good surgeons know when not to operate.'],
+'Gynaecology':['Ask about the menstrual and sexual history with respect and calm.','Always exclude pregnancy first in a woman of reproductive age.','Explain each step and ask permission before the examination.'],
+'Obstetrics':['Two lives, one examination. Check the mother and the baby.','Blood pressure, urine and fundal height tell the story at every visit.','Calm hands and a calm voice help every labour.'],
+'Orthopaedics':['Look, feel, move. Then compare with the other side.','Always check the pulses and sensation beyond the injury.','Immobilise first, and relieve pain early.'],
+'Ophthalmology':['Check the vision first, before any drops.','A red eye with pain or reduced vision is never minor.','Look carefully at the pupils, they say a lot.'],
+'ENT':['Light, mirror, patience. A good view needs a calm patient.','Nosebleed? Sit forward, pinch the soft part, wait ten minutes.','Test the hearing with Rinne and Weber before guessing.'],
+'Psychiatry':['Listen without hurrying. Be kind and ask about risk directly.','A mental state examination starts the moment you meet the patient.','Treat the person, not the label.'],
+'Dermatology':['Describe before you diagnose: site, shape, colour, surface.','Always look at the whole skin, nails and mouth.','Ask what has been applied. Steroid creams change the picture.'],
+'Urology':['Ask about the stream, the colour and the pain of urine.','Painless haematuria in an adult needs a full work-up.','A sudden painful testis is torsion until proven otherwise.'],
+'Burn':['Stop the burning, cool the burn, cover it. Then assess the airway.','Estimate the burnt area carefully before giving fluids.','Pain control is part of burn care.'],
+'lecture':['Sit near the front, ask one question, and note one new thing.','A focused hour in class saves three hours of revision.','Write the key point in your own words before you leave.'],
+'tutorial':['Prepare one question before you go. Tutorials reward curiosity.','Say your answer aloud. Mistakes made here are free.','Discuss it with a friend afterwards to lock it in.'],
+'practical':['Wear the apron, wash your hands, label every sample.','Do the steps in order and write results as you go.','The practical exam rewards practice, not luck.'],
+'seminar':['Listen for the main message and one thing you can use tomorrow.','Ask a short, polite question at the end.','Take notes on what you did not know before.'],
+'case':['Present the case in order: history, examination, impression, plan.','Keep it short and clear. Examiners like confident, simple presentation.','Know your patient’s name, age and main problem by heart.'],
+'integrated':['Link the basic science to the patient in front of you.','Draw one diagram that joins anatomy, physiology and disease.','Ask yourself why each sign happens.'],
+'sgt':['Come ready with one case you saw this week.','Small groups reward those who speak up. Share your thinking.','Teach one point to the group. It is the best way to learn it.'],
+'ward':['Introduce yourself, wash your hands, then take the history.','Be early, be present, be useful on the ward.','Write what you learn from every patient in your logbook.'],
+'exam':['Read the question twice. Answer what is asked.','Stay calm. You have prepared more than you think.','Start with the questions you know best.'],
+'study':['Start with ten focused minutes. Momentum will follow.','Put the phone away and test yourself without the book.','Small daily study beats a night before the exam.'],
+'morning':['A small step today is a big gain by the exam.','Eat something, drink water, and walk into the day on time.','Be kind to your patients and to yourself today.']
+};
+const RQ_SUBJ=[[/medicine/i,'Internal Medicine'],[/pa?ediatric/i,'Paediatrics'],[/surg/i,'Surgery'],[/gyn/i,'Gynaecology'],[/obst/i,'Obstetrics'],[/ortho/i,'Orthopaedics'],[/ophth|\bEye\b/i,'Ophthalmology'],[/\bENT\b/,'ENT'],[/psych/i,'Psychiatry'],[/derm/i,'Dermatology'],[/urol/i,'Urology'],[/burn/i,'Burn']];
+const RQ_TYPE=[[/Lecture/i,'lecture'],[/Tutorial/i,'tutorial'],[/Practical/i,'practical'],[/Seminar/i,'seminar'],[/Case/i,'case'],[/ntegrated/i,'integrated'],[/^SGT/i,'sgt'],[/Feedback|Exam|Viva|OSCE|Quiz/i,'exam'],[/Ward|duty|round/i,'ward']];
+
 /* ---------- hourly engine: a different line every hour, a long gap before any repeat ---------- */
 const slotN=()=>Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/36e5);
 const gcd=(a,b)=>b?gcd(b,a%b):a;
@@ -2090,7 +2121,7 @@ function scoreMini(){const L=lvl(),s=ostreak(),k=ymd(today()),q=jl('qdays').incl
  return `<div class="card score mini"><div class=sc1><span class=lvl style="width:44px;height:44px;font-size:22px;border-radius:15px">${L.em}</span><div style="flex:1"><b>${L.name}</b><div class=bar><i style="width:${L.pct}%"></i></div><small>Level ${L.i+1} · ${L.next?(L.next-L.x)+' XP to the next level':'Top level'}</small></div><div style="text-align:right"><b><span class=fl2>🔥</span> ${s}</b><small>⭐ ${bal()} XP</small></div></div><div class=gchips><span class="gc ok">✓ Routine</span><button class="gc${q?' ok':''}" data-go=learn>${q?'✓':'○'} Quiz</button><button class="gc${r?' ok':''}" data-go=learn>${r?'✓':'○'} Disease of the day</button></div></div>`}
 function quoteMini(){const q=hp(QUOTES,13,37),j=hp(HUMOR,7,41,5);return `<div class="card qc"><span class=qh>Quote of the hour</span><span class=qt>“${esc(q[0])}”</span><small>${esc(q[1])}</small><div class=lmi>😄 ${esc(j)}</div></div>`}
 function hello(){const nm=nick(),r=+ls('r'),n=new Date(),m=n.getHours()*60+n.getMinutes(),gr=m<720?'Good morning':m<1020?'Good afternoon':'Good evening',L=lvl(),s=ostreak();
- return `<div class="card hello slim"><b>${gr}${nm?', '+esc(nm):''}!</b><div class=tags><span class=tg>${r?rid(r)+' · ':''}Group ${g}</span><span class=tg>${L.em} ${L.name}</span><span class=tg>🔥 ${s}</span><span class=tg>⭐ ${bal()} XP</span></div></div>`}
+ return `<div class="card hello slim"><b>${gr}${nm?', '+esc(nm):''}!</b><div class=tags><span class=tg>${r?rid(r)+' · ':''}Group ${g}</span><span class=tg>${L.em} ${L.name}</span><span class=tg>🔥 ${s}</span><span class=tg>⭐ ${bal()} XP</span></div>${r?'<button class=link id=rb>Change roll</button>':''}</div>`}
 function vToday(){const t=today(),E=evs(g),cur=E.filter(e=>e.s<=t&&t<=e.e),nx=E.find(e=>e.s>t),tm=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1),inB=cur.some(e=>e.k=='b');
  const n0=new Date(),m0=n0.getHours()*60+n0.getMinutes(),act=slotsFor(n0).filter(s=>!/lunch|Break/.test(s.t)),over=!act.length||m0>=Math.max(...act.map(s=>s.b));
  let h=offB()+upd()+hello()+grpBanner()+pin()+liveCard()+(inB?blkMini():'')+(over?sec('Tomorrow’s classes')+dayNote(tm,'tomorrow')+vDay(tm,0)+det('td','Today’s classes'+(act.length?' (finished)':''),vDay(new Date(),0)):dayNote(t,'today')+sec('Today’s classes')+vDay(new Date(),1))+(inB?'':blkMini());
@@ -2355,6 +2386,10 @@ const hgrp=()=>ls('g')||g;
 function bridgeAlr(){try{if(window.AndroidBridge&&AndroidBridge.alr&&hgrp())AndroidBridge.alr(ls('alon')=='0'?'':hgrp(),+(ls('alseen')||0))}catch(e){}}
 if(ls('inst')==null)ls('inst',String(Date.now()));
 
+/* ---------- personal, subject-related reminder text ---------- */
+function firstName(){const r=+ls('r'),full=(r&&DIRM[r]&&DIRM[r][1])||nick();if(!full)return'';return String(full).replace(/^(Md\.?|Mst\.?|Most|Mohammed?|Mohammad)\s+/i,'').split(' ')[0]||''}
+function relq(title,kind,salt){let k=kind;if(!k){const sb=RQ_SUBJ.find(a=>a[0].test(title||''));if(sb)k=sb[1];else{const ty=RQ_TYPE.find(a=>a[0].test(title||''));k=ty?ty[1]:'study'}}const A=RQ[k]||RQ.study;return A[Math.abs(hs((title||'')+(salt||'')))%A.length]}
+
 /* ---------- clinical calculators (pure functions, easy to test) ---------- */
 const Calc={
  bmi(kg,cm){const m=cm/100,b=kg/(m*m);return{b,who:b<18.5?'Underweight':b<25?'Normal weight':b<30?'Overweight':b<35?'Obese class I':b<40?'Obese class II':'Obese class III',asia:b<18.5?'Underweight':b<23?'Normal weight':b<27.5?'Overweight (increased risk)':'Obese (high risk)'}},
@@ -2399,13 +2434,13 @@ function vTools(){return `<div class=hint>Quick bedside aids. They support, and 
 const rmOn=k=>ls('rm_'+k)!='0',rmT=(k,d)=>ls('rt_'+k)||d;
 let pk='';
 const hs=s=>{let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return h};
-function push(){const g0=g;try{const B=window.AndroidBridge;const hg=ls('g')||g;if(!B||!hg)return;g=hg;const k=hg+'|'+hs(JSON.stringify(st.days||{}))+'|'+hs(ls('plan')||'')+rmOn('pl')+'|'+st.sgt+'|'+(ls('lead')||'')+'|'+today().getTime()+'|'+['cl','mo','ev'].map(x=>rmOn(x)+rmT(x,'')).join();if(k==pk)return;pk=k;
- const now=Date.now(),t0=today(),lead=+ls('lead')||10,L=[],hm=s=>+s.slice(0,2)*60+ +s.slice(2);
+function push(){const g0=g;try{const B=window.AndroidBridge;const hg=ls('g')||g;if(!B||!hg)return;g=hg;const k=hg+'|'+ls('r')+'|'+firstName()+'|'+hs(JSON.stringify(st.days||{}))+'|'+hs(ls('plan')||'')+rmOn('pl')+'|'+st.sgt+'|'+(ls('lead')||'')+'|'+today().getTime()+'|'+['cl','mo','ev'].map(x=>rmOn(x)+rmT(x,'')).join();if(k==pk)return;pk=k;
+ const now=Date.now(),t0=today(),lead=+ls('lead')||10,nm=firstName(),L=[],hm=s=>+s.slice(0,2)*60+ +s.slice(2);
  for(let i=0;i<7;i++){const d=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+i),S=slotsFor(d).filter(s=>!/lunch|Break/.test(s.t));
-  if(rmOn('cl'))S.forEach(s=>{const t=+d+s.a*6e4-lead*6e4;if(t>now&&!s.canc&&!s.done)L.push({t,h:s.t,b:'Starts in '+lead+' min'+(s.n?' · '+s.n:'')})});
-  if(rmOn('mo')&&S.length){const t=+d+hm(rmT('mo','0715'))*6e4;if(t>now)L.push({t,h:'FELO 31 · Today',b:S.slice(0,4).map(s=>f12(s.a)+' '+s.t+(s.canc?' (cancelled)':'')).join(' · ')})}
-  if(rmOn('ev')){const t=+d+hm(rmT('ev','2100'))*6e4;if(t>now){const q=QE[(seedN()*13+Math.floor(+d/DAY)*5)%QE.length];L.push({t,h:'Time for tonight’s revision',b:'“'+q[0]+'” — '+q[1]})}}}
- if(rmOn('pl'))for(let i=0;i<7;i++){const d=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+i);planFor(d).forEach(p=>{const t=+d+p.s*6e4-lead*6e4;if(t>now&&!p.done)L.push({t,h:'Study: '+p.sub,b:(p.topic?p.topic+' · ':'')+f12(p.s)+' to '+f12(p.e)+(p.target?' · '+p.target:'')})})}
+  if(rmOn('cl'))S.forEach(s=>{const t=+d+s.a*6e4-lead*6e4;if(t>now&&!s.canc&&!s.done)L.push({t,h:(nm?nm+', ':'')+s.t+' in '+lead+' min',b:f12(s.a)+(s.n?' · '+s.n:'')+'\n“'+relq(s.t,'',ymd(d))+'”'})});
+  if(rmOn('mo')&&S.length){const t=+d+hm(rmT('mo','0715'))*6e4;if(t>now)L.push({t,h:'Good morning'+(nm?', '+nm:'')+'!',b:S.slice(0,4).map(s=>f12(s.a)+' '+s.t+(s.canc?' (cancelled)':'')).join(' · ')+'\n“'+relq('', 'morning', ymd(d))+'”'})}
+  if(rmOn('ev')){const t=+d+hm(rmT('ev','2100'))*6e4;if(t>now){const nd=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1),y=slotsFor(nd).find(x=>!/lunch|Break/.test(x.t)&&!x.canc);if(y)L.push({t,h:(nm?nm+', t':'T')+'ime for tonight’s revision',b:'Tomorrow: '+y.t+' at '+f12(y.a)+'.\n“'+relq(y.t,'',ymd(nd))+'”'});else{const q=QE[(seedN()*13+Math.floor(+d/DAY)*5)%QE.length];L.push({t,h:(nm?nm+', t':'T')+'ime for tonight’s revision',b:'“'+q[0]+'” — '+q[1]})}}}}
+ if(rmOn('pl'))for(let i=0;i<7;i++){const d=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+i);planFor(d).forEach(p=>{const t=+d+p.s*6e4-lead*6e4;if(t>now&&!p.done)L.push({t,h:(nm?nm+', ':'')+p.sub+' study in '+lead+' min',b:(p.topic?p.topic+' · ':'')+f12(p.s)+' to '+f12(p.e)+(p.target?' · '+p.target:'')+'\n“'+relq(p.sub,'',ymd(d))+'”'})})}
  evs(g).forEach(e=>{const t=+e.s-4*36e5;if(t>now&&t<now+14*DAY)L.push({t,h:'Starts tomorrow',b:e.t})});
  B.set(JSON.stringify(L))}catch(e){}finally{g=g0}}
 
@@ -2501,7 +2536,7 @@ if('mr' in d){mro=+d.mr;render();return}
 if(b.id=='acan'){await doCancel(A);return}
  if(b.id=='adone'){const dd=$('#cd').value;if(!dd){am('Choose a date first.');return}const gs=$('#cg').value.toUpperCase().replace(/[^A-F]/g,''),r=$('#cr').value.trim(),line='done '+$('#ct').value+(gs?' '+gs:'')+(r?': '+r:'');await A(async()=>{const f=await ghGet(),nt=addDayLine(f.txt,dd,line);await ghPut(nt,f.sha,'Class finished');applyTxt(nt);await sendSafe('Class finished early',cap($('#ct').value)+' on '+fd(new Date(dd+'T00:00'))+(gs?' (Group '+gs+')':'')+(r?'. '+r:''))},'Marked as finished. Students see DONE within seconds of opening the app.');return}
  if('rd2' in d){const c=doneList()[+d.rd2];if(!c)return;await A(async()=>{const f=await ghGet(),nt=rmLine(f.txt,c.raw);await ghPut(nt,f.sha,'Undo finished');applyTxt(nt)},'Restored.');return}
- if(b.id=='aup'){const f=($('#uf').files||[])[0],t=$('#ut').value.trim();if(!f){am('Choose a file first.');return}if(!t){am('Add a title first.');return}if(f.size>20971520){am('The file is larger than 20 MB.');return}am('Uploading…');
+ if(b.id=='aup'){const f=($('#uf').files||[])[0],t=$('#ut').value.trim();if(!f){am('Choose a file first. If the file picker does not open, install the latest APK.');return}if(!t){am('Add a title first.');return}if(f.size>20971520){am('The file is larger than 20 MB.');return}am('Uploading…');
   await A(async()=>{const c=GH(),buf=new Uint8Array(await f.arrayBuffer());let bin='';for(let i=0;i<buf.length;i+=8192)bin+=String.fromCharCode.apply(null,buf.subarray(i,i+8192));
    const safe=f.name.replace(/[^A-Za-z0-9._-]+/g,'_'),path='files/'+Date.now().toString(36)+'-'+safe,base='/repos/'+c.o+'/'+c.r+'/contents/';
    await ghApi(base+path,tok(),'PUT',{message:'Upload material',content:btoa(bin)});
