@@ -34,6 +34,9 @@ contact:
 apk:
 apklink:
 ---
+day: 2026-11-25
+done integrated
+---
 day: 2026-11-19
 cancel lecture
 ward F: Male ward,3rd floor
